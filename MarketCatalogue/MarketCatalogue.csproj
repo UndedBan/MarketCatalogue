@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
@@ -24,6 +24,9 @@
   <ItemGroup>
     <ProjectReference Include="..\MarketCatalogue.Authentication.Application\MarketCatalogue.Authentication.Application.csproj" />
     <ProjectReference Include="..\MarketCatalogue.Authentication.Infrastructure\MarketCatalogue.Authentication.Infrastructure.csproj" />
+    <ProjectReference Include="..\MarketCatalogue.DependencyInjection\MarketCatalogue.DependencyInjection.csproj" />
+    <ProjectReference Include="..\MarketCatalogue.Shared.Core\MarketCatalogue.Shared.Application.csproj" />
+    <ProjectReference Include="..\MarketCatalogue.Shared.Domain\MarketCatalogue.Shared.Domain.csproj" />
   </ItemGroup>
 
 </Project>
