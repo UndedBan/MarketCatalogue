@@ -1,21 +1,66 @@
-using MarketCatalogue.Data;
+using MarketCatalogue.Authentication.Domain.Entities;
+using MarketCatalogue.Authentication.Domain.Enumerations;
+using MarketCatalogue.Extensions;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using MarketCatalogue.Authentication.Application.Extensions;
+using MarketCatalogue.Authentication.Infrastructure.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(connectionString));
-builder.Services.AddDatabaseDeveloperPageExceptionFilter();
+var config = new ConfigurationBuilder()
+                .SetBasePath(Directory.GetCurrentDirectory())
+                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+                .AddJsonFile("appsettings.ConnectionString.json")
+                .AddEnvironmentVariables()
+                .Build();
 
-builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
-    .AddEntityFrameworkStores<ApplicationDbContext>();
+builder.Services.ConfigureDbContexts(config);
+builder.Services.ConfigureOptions(config);
+builder.Services.ConfigureDependencyInjection();
+builder.Services.AddIdentity();
+
 builder.Services.AddControllersWithViews();
 
 var app = builder.Build();
 
+using (var scope = app.Services.CreateScope())
+{
+    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+
+    var roles = Enum.GetValues<UserRoles>();
+
+    foreach (var roleEnum in roles)
+    {
+        var roleName = roleEnum.ToRoleName();
+        if (!await roleManager.RoleExistsAsync(roleName))
+        {
+            await roleManager.CreateAsync(new IdentityRole(roleName));
+        }
+    }
+
+    var email = "marketrep@example.com";
+    var user = await userManager.FindByEmailAsync(email);
+
+    if (user == null)
+    {
+        var newUser = new ApplicationUser
+        {
+            UserName = email,
+            Email = email,
+            FirstName = "Market",
+            LastName = "Rep",
+            Birthday = new DateTime(1990, 1, 1)
+        };
+
+        var result = await userManager.CreateAsync(newUser, "StrongPassword123!");
+        if (result.Succeeded)
+        {
+            await userManager.AddToRoleAsync(newUser, UserRoles.MarketRepresentative.ToRoleName());
+        }
+    }
+}
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
