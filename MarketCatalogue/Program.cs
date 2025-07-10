@@ -7,15 +7,17 @@ using MarketCatalogue.Authentication.Application.Extensions;
 using MarketCatalogue.Authentication.Infrastructure.Data;
 
 var builder = WebApplication.CreateBuilder(args);
-var connectionString = builder.Configuration.GetConnectionString("AuthenticationDbContextConnection") ?? throw new InvalidOperationException("Connection string 'AuthenticationDbContextConnection' not found.");
 
 var config = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
+                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
                 .AddJsonFile("appsettings.ConnectionString.json")
                 .AddEnvironmentVariables()
                 .Build();
 
 builder.Services.ConfigureDbContexts(config);
+builder.Services.ConfigureOptions(config);
+builder.Services.ConfigureDependencyInjection();
 builder.Services.AddIdentity();
 
 builder.Services.AddControllersWithViews();
