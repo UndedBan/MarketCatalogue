@@ -1,0 +1,43 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>aspnet-MarketCatalogue-6de77c21-feb0-4c18-b275-62e11b34de78</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Components.QuickGrid.EntityFrameworkAdapter" Version="8.0.11" />
+    <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="8.0.11" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="8.0.11" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="8.0.11" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="8.0.11" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.11" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.11">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="8.0.7" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\MarketCatalogue.Authentication.Application\MarketCatalogue.Authentication.Application.csproj" />
+    <ProjectReference Include="..\MarketCatalogue.Authentication.Infrastructure\MarketCatalogue.Authentication.Infrastructure.csproj" />
+    <ProjectReference Include="..\MarketCatalogue.Commerce.Application\MarketCatalogue.Commerce.Application.csproj" />
+    <ProjectReference Include="..\MarketCatalogue.Commerce.Infrastructure\MarketCatalogue.Commerce.Infrastructure.csproj" />
+    <ProjectReference Include="..\MarketCatalogue.DependencyInjection\MarketCatalogue.DependencyInjection.csproj" />
+    <ProjectReference Include="..\MarketCatalogue.Shared.Core\MarketCatalogue.Shared.Application.csproj" />
+    <ProjectReference Include="..\MarketCatalogue.Shared.Domain\MarketCatalogue.Shared.Domain.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Areas\HomePage\Controllers\" />
+    <Folder Include="Areas\HomePage\Data\" />
+    <Folder Include="Areas\HomePage\Models\" />
+    <Folder Include="Areas\HomePage\Views\" />
+    <Folder Include="Areas\Shops\Controllers\" />
+    <Folder Include="Areas\Shops\Data\" />
+  </ItemGroup>
+
+</Project>
