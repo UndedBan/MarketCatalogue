@@ -33,7 +33,9 @@ public static class ShopMapper
                 City = shop.Address.City,
                 State = shop.Address.State,
                 PostalCode = shop.Address.PostalCode,
-                Country = shop.Address.Country
+                Country = shop.Address.Country,
+                Longitude = shop.Address.Longitude,
+                Latitude = shop.Address.Latitude,
             },
             Schedule = shop.Schedule?
                 .Select(s => new ScheduleViewModel
