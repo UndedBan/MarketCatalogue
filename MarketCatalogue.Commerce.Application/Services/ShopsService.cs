@@ -19,11 +19,13 @@ public class ShopsService : IShopsService
 {
     private readonly CommerceDbContext _commerceDbContext;
     private readonly UserManager<ApplicationUser> _userManager;
+    private readonly IGeocodingService _geocodingService;
 
-    public ShopsService(CommerceDbContext commerceDbContext, UserManager<ApplicationUser> userManager)
+    public ShopsService(CommerceDbContext commerceDbContext, UserManager<ApplicationUser> userManager, IGeocodingService geocodingService)
     {
         _commerceDbContext = commerceDbContext;
         _userManager = userManager;
+        _geocodingService = geocodingService;
     }
 
     public async Task<List<Shop>> GetAllShopsByRepresentativeId(string representativeId, PaginationDto paginationDto)
@@ -54,38 +56,12 @@ public class ShopsService : IShopsService
 
     public async Task<bool> EditShop(EditShopDto editShopDto)
     {
-        var shop = await _commerceDbContext.Shops
-            .Include(s => s.Address)
-            .Include(s => s.Schedule)
-            .FirstOrDefaultAsync(s => s.Id == editShopDto.Id);
-
-        if (shop == null)
-            return false;
+        var shop = await GetShopById(editShopDto.Id);
+        if (shop == null) return false;
 
         shop.ShopName = editShopDto.ShopName;
-
-        if (shop.Address == null)
-            shop.Address = new Address();
-        shop.Address.Street = editShopDto.Address.Street;
-        shop.Address.City = editShopDto.Address.City;
-        shop.Address.State = editShopDto.Address.State;
-        shop.Address.PostalCode = editShopDto.Address.PostalCode;
-        shop.Address.Country = editShopDto.Address.Country;
-
-        if (shop.Schedule != null && shop.Schedule.Any())
-            _commerceDbContext.Schedules.RemoveRange(shop.Schedule);
-
-        if (editShopDto.Schedule != null)
-        {
-            shop.Schedule = editShopDto.Schedule.Select(s => new Schedule
-            {
-                Day = s.Day,
-                OpenTime = s.OpenTime,
-                CloseTime = s.CloseTime
-            }).ToList();
-        }
-        else
-            shop.Schedule = new List<Schedule>();
+        UpdateShopAddress(shop, editShopDto.Address);
+        UpdateShopSchedule(shop, editShopDto.Schedule);
 
         try
         {
@@ -94,15 +70,18 @@ public class ShopsService : IShopsService
         }
         catch (Exception ex)
         {
+            // Optional: log the exception
             return false;
         }
     }
+
 
     public async Task<Shop> GetShopById(int shopId)
     {
         var shop = await _commerceDbContext.Shops
             .Where(s => s.Id == shopId)
             .Include(s => s.Schedule)
+            .Include(s => s.Address)
             .FirstOrDefaultAsync();
 
         var marketRepresentative = await _userManager.Users
@@ -136,6 +115,11 @@ public class ShopsService : IShopsService
             }).ToList()
         };
 
+        var coordinates = await _geocodingService.GetCoordinatesAsync(shopCreateDto.Address);
+
+        shop.Address.Longitude = coordinates.Value.Longitude;
+        shop.Address.Latitude = coordinates.Value.Latitude;
+
         _commerceDbContext.Shops.Add(shop);
         var result = await _commerceDbContext.SaveChangesAsync();
 
@@ -155,4 +139,31 @@ public class ShopsService : IShopsService
         await _commerceDbContext.SaveChangesAsync();
         return true;
     }
+
+#region Helpers
+    private void UpdateShopAddress(Shop shop, AddressDto addressDto)
+    {
+        if (shop.Address == null)
+            shop.Address = new Address();
+
+        shop.Address.Street = addressDto.Street;
+        shop.Address.City = addressDto.City;
+        shop.Address.State = addressDto.State;
+        shop.Address.PostalCode = addressDto.PostalCode;
+        shop.Address.Country = addressDto.Country;
+    }
+
+    private void UpdateShopSchedule(Shop shop, List<ScheduleDto>? newSchedule)
+    {
+        if (shop.Schedule != null && shop.Schedule.Any())
+            _commerceDbContext.Schedules.RemoveRange(shop.Schedule);
+
+        shop.Schedule = newSchedule?.Select(s => new Schedule
+        {
+            Day = s.Day,
+            OpenTime = s.OpenTime,
+            CloseTime = s.CloseTime
+        }).ToList() ?? new List<Schedule>();
+    }
+    #endregion
 }
