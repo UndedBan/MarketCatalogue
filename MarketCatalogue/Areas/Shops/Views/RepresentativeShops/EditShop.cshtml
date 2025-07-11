@@ -1,0 +1,96 @@
+﻿@model MarketCatalogue.Presentation.Areas.Shops.Models.ViewModels.EditShopViewModel
+
+@{
+    ViewData["Title"] = $"Details for {Model.ShopName}";
+}
+
+<h2 class="mb-4">Shop Details</h2>
+
+<form asp-action="EditShop" asp-controller="RepresentativeShops" method="post" class="needs-validation" novalidate>
+    <input type="hidden" asp-for="Id" />
+
+    <div class="mb-3">
+        <label asp-for="ShopName" class="form-label">Shop Name</label>
+        <input asp-for="ShopName" class="form-control" />
+        <span asp-validation-for="ShopName" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Market Representative</label>
+        <p class="form-control-plaintext">            @(
+                Model.MarketRepresentative?.Email ?? "(N/A)"
+                )
+        </p>
+    </div>
+
+    <h4 class="mt-4">Address Details</h4>
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            <label asp-for="Address.Street" class="form-label">Street</label>
+            <input asp-for="Address.Street" class="form-control" />
+            <span asp-validation-for="Address.Street" class="text-danger"></span>
+        </div>
+        <div class="col-md-6 mb-3">
+            <label asp-for="Address.City" class="form-label">City</label>
+            <input asp-for="Address.City" class="form-control" />
+            <span asp-validation-for="Address.City" class="text-danger"></span>
+        </div>
+        <div class="col-md-6 mb-3">
+            <label asp-for="Address.State" class="form-label">State</label>
+            <input asp-for="Address.State" class="form-control" />
+            <span asp-validation-for="Address.State" class="text-danger"></span>
+        </div>
+        <div class="col-md-6 mb-3">
+            <label asp-for="Address.PostalCode" class="form-label">Postal Code</label>
+            <input asp-for="Address.PostalCode" class="form-control" />
+            <span asp-validation-for="Address.PostalCode" class="text-danger"></span>
+        </div>
+        <div class="col-md-6 mb-3">
+            <label asp-for="Address.Country" class="form-label">Country</label>
+            <input asp-for="Address.Country" class="form-control" />
+            <span asp-validation-for="Address.Country" class="text-danger"></span>
+        </div>
+    </div>
+
+    <h4 class="mt-4">Weekly Schedule</h4>
+    @if (Model.Schedule != null && Model.Schedule.Any())
+    {
+        @for (int i = 0; i < Model.Schedule.Count; i++)
+        {
+            <div class="row mb-2 align-items-center">
+                <div class="col-md-2">
+                    <strong>@Model.Schedule[i].Day</strong>
+                    <input type="hidden" asp-for="Schedule[i].Day" />
+                </div>
+                <div class="col-md-5">
+                    <input asp-for="Schedule[i].OpenTime" class="form-control" type="time" />
+                </div>
+                <div class="col-md-5">
+                    <input asp-for="Schedule[i].CloseTime" class="form-control" type="time" />
+                </div>
+            </div>
+        }
+    }
+    else
+    {
+        <p class="text-muted">No schedule information available for editing.</p>
+    }
+
+    <div class="mt-4">
+        <button type="submit" class="btn btn-primary">
+            <i class="bi bi-save me-2"></i> Save Changes
+        </button>
+        <a asp-action="Index" class="btn btn-secondary ms-2">
+            <i class="bi bi-arrow-left-circle me-2"></i> Back to List
+        </a>
+    </div>
+</form>
+<form asp-action="DeleteShop" asp-controller="RepresentativeShops" method="post" onsubmit="return confirm('Are you sure you want to delete this shop?');">
+    <input type="hidden" name="shopId" value="@Model.Id" />
+    <button type="submit" class="btn btn-danger mt-3">
+        <i class="bi bi-trash me-2"></i> Delete Shop
+    </button>
+</form>
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

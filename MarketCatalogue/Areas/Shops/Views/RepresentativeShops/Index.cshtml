@@ -1,0 +1,121 @@
+﻿@using MarketCatalogue.Presentation.Areas.Shops.Models.ViewModels
+@model List<RepresentativeShopsViewModel>
+
+@{
+    ViewData["Title"] = "My Shops";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="mb-0">My Shops</h2>
+    <a class="btn btn-primary" asp-action="CreateShop" asp-controller="RepresentativeShops">
+        <i class="bi bi-plus-circle-fill me-2"></i> Add New Shop
+    </a>
+</div>
+
+@if (Model == null || !Model.Any())
+{
+    <div class="alert alert-info text-center" role="alert">
+        <h4 class="alert-heading">No Shops Found!</h4>
+        <p>It looks like you haven't created any shops yet.</p>
+        <hr>
+        <p class="mb-0">Click the "Add New Shop" button above to get started.</p>
+    </div>
+}
+else
+{
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+        @foreach (var shop in Model)
+        {
+            <div class="col">
+                <div class="card h-100 shadow-sm border-primary">
+                    <div class="card-body d-flex flex-column">
+                        <h5 class="card-title text-primary fw-bold mb-3">@shop.ShopName</h5>
+
+                        <div class="mb-3 flex-grow-1">
+                            @if (shop.Address is not null)
+                            {
+                                <div class="mb-2">
+                                    <h6 class="text-secondary"><i class="bi bi-geo-alt-fill me-2"></i> Address:</h6>
+                                    <address class="mb-0 small text-muted ps-4">
+                                        @if (!string.IsNullOrEmpty(shop.Address.Street))
+                                        {
+                                            @shop.Address.Street <br />
+                                        }
+                                        @if (!string.IsNullOrEmpty(shop.Address.City))
+                                        {
+                                            @shop.Address.City
+                                        }
+                                        @if (!string.IsNullOrEmpty(shop.Address.State))
+                                        {
+                                            @shop.Address.State
+                                        }
+                                        @if (!string.IsNullOrEmpty(shop.Address.PostalCode))
+                                        {
+                                            <text> @shop.Address.PostalCode</text>
+                                        }
+                                        @if (!string.IsNullOrEmpty(shop.Address.Country))
+                                        {
+                                            <br /> @shop.Address.Country
+                                        }
+                                    </address>
+                                </div>
+                            }
+
+                            <div class="mb-2">
+                                <h6 class="text-secondary"><i class="bi bi-box-seam-fill me-2"></i> Products:</h6>
+                                <p class="mb-0 ps-4">@(shop.ProductCount == 0 ? "0" : shop.ProductCount.ToString())</p>
+                            </div>
+
+                            @if (shop.Schedule is not null && shop.Schedule.Any())
+                            {
+                                <div class="mb-2">
+                                    <h6 class="text-secondary"><i class="bi bi-calendar-week-fill me-2"></i> Schedule:</h6>
+                                    <ul class="list-unstyled mb-0 small text-muted ps-4">
+                                        @foreach (var scheduleEntry in shop.Schedule.OrderBy(s => (int)s.Day))
+                                        {
+                                            <li>
+                                                <strong>@scheduleEntry.Day:</strong>
+                                                @if (scheduleEntry.OpenTime == TimeSpan.Zero && scheduleEntry.CloseTime == TimeSpan.Zero)
+                                                {
+                                                    <span class="text-danger">Closed</span>
+                                                }
+                                                else
+                                                {
+                                                    <span>@scheduleEntry.OpenTime - @scheduleEntry.CloseTime</span>
+                                                }
+                                            </li>
+                                        }
+                                    </ul>
+                                </div>
+                            }
+                            else if (shop.Schedule is not null && !shop.Schedule.Any())
+                            {
+                                <div class="mb-2">
+                                    <h6 class="text-secondary"><i class="bi bi-calendar-week-fill me-2"></i> Schedule:</h6>
+                                    <p class="mb-0 ps-4 text-warning">No schedule information available.</p>
+                                </div>
+                            }
+
+                            <div class="mb-2">
+                                <h6 class="text-secondary"><i class="bi bi-person-fill me-2"></i> Representative:</h6>
+                                <p class="mb-0 ps-4">
+                                    @(
+                                        shop.MarketRepresentative?.Email ?? "(N/A)"
+                                        )
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-footer bg-transparent border-top-0 text-end">
+                        <a href="@Url.Action("EditShop", "RepresentativeShops", new { shopId = shop.Id })" class="btn btn-outline-primary btn-sm">
+                            <i class="bi bi-info-circle-fill me-2"></i> Edit Shop
+                        </a>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+
+@section Scripts {
+}

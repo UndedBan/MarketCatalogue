@@ -7,8 +7,17 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Folder Include="Data\Migrations\" />
+    <Folder Include="ExternalApi\" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.1" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\MarketCatalogue.Commerce.Domain\MarketCatalogue.Commerce.Domain.csproj" />
   </ItemGroup>
 
 </Project>

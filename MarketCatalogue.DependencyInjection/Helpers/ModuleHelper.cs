@@ -21,7 +21,7 @@ public class ModuleHelper
         //Filter out all third party assemblies.
         var assemblyNames = assemblyPaths
             .Select(Path.GetFileNameWithoutExtension)
-            .Where(n => n!.StartsWith("MarketCatalogue"))
+            .Where(n => n!.StartsWith("MarketCatalogue."))
             .ToList();
 
         //Find all classes that implement IModule.
