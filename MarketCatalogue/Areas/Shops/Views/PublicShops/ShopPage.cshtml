@@ -83,35 +83,35 @@
         }
     </div>
     <form method="get" class="mb-4">
-    <input type="hidden" name="shopId" value="@Model.ShopWithProducts.Id" />
+        <input type="hidden" name="shopId" value="@Model.ShopWithProducts.Id" />
 
-    <div class="row g-2">
-        <div class="col-md-5">
-            <input 
-                type="text" 
-                name="searchName" 
-                value="@Model.SearchName" 
-                placeholder="Search by product name" 
-                class="form-control" />
-        </div>
+        <div class="row g-2">
+            <div class="col-md-5">
+                <input 
+                    type="text" 
+                    name="searchName" 
+                    value="@Model.SearchName" 
+                    placeholder="Search by product name" 
+                    class="form-control" />
+            </div>
 
-        <div class="col-md-4">
-            <select name="searchCategory" class="form-select">
-            <option value="">All Categories</option>
-            @foreach (var category in Model.ProductCategories)
-            {
-                        <option value="@category.Value" selected="@(category.Value == Model.SearchCategory ? "selected" : null)">
-                    @category.Text
-                </option>
-            }
-            </select>
-        </div>
+            <div class="col-md-4">
+                <select name="searchCategory" class="form-select">
+                <option value="">All Categories</option>
+                @foreach (var category in Model.ProductCategories)
+                {
+                            <option value="@category.Value" selected="@(category.Value == Model.SearchCategory ? "selected" : null)">
+                        @category.Text
+                    </option>
+                }
+                </select>
+            </div>
 
-        <div class="col-md-3">
-            <button type="submit" class="btn btn-primary w-100">Search</button>
+            <div class="col-md-3">
+                <button type="submit" class="btn btn-primary w-100">Search</button>
+            </div>
         </div>
-    </div>
-</form>
+    </form>
 
     @if (Model.ShopWithProducts.Products != null && Model.ShopWithProducts.Products.Any())
     {
@@ -148,6 +148,28 @@
                                 </a>
                             </td>
                         }
+                        <td>
+                            <form asp-area="Purchasers"
+                                  asp-controller="Purchasers"
+                                  asp-action="AddToCart"
+                                  method="post"
+                                  class="d-flex align-items-center gap-2">
+
+                                <input type="hidden" name="ProductId" value="@product.Id" />
+
+                                <input type="number"
+                                       name="Quantity"
+                                       value="1"
+                                       min="1"
+                                       max="@product.Quantity"
+                                       class="form-control form-control-sm"
+                                       style="width: 70px;" />
+
+                                <button type="submit" class="btn btn-sm btn-outline-primary">
+                                    Add To Cart
+                                </button>
+                            </form>
+                        </td>
                     </tr>
                 }
             </tbody>
