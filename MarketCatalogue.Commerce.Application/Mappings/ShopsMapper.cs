@@ -10,9 +10,9 @@ namespace MarketCatalogue.Commerce.Application.Mappings;
 
 public static class ShopsMapper
 {
-    public static RepresentativeShopsDto ToRepresentativeShopsIndexDto(this Shop shop)
+    public static RepresentativeShopDto ToRepresentativeShopsIndexDto(this Shop shop)
     {
-        return new RepresentativeShopsDto
+        return new RepresentativeShopDto
         {
             Address = shop.Address.ToDto(),
             ShopName = shop.ShopName,

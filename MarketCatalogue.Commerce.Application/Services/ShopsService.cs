@@ -33,7 +33,34 @@ public class ShopsService : IShopsService
         _mapper = mapper;
     }
 
-    public async Task<List<RepresentativeShopsDto>> GetAllShopsByRepresentativeId(string representativeId, PaginationDto paginationDto)
+    public async Task<ShopWithProductsDto> GetShopWithProductsById(int shopId, PaginationDto paginationDto)
+    {
+        var shop = await _commerceDbContext.Shops
+            .Include(s => s.Address)
+            .Include(s => s.Schedule)
+            .FirstOrDefaultAsync(s => s.Id == shopId);
+
+        if (shop == null)
+            return null;
+
+        var products = await _commerceDbContext.Products
+            .Where(p => p.ShopId == shopId)
+            .Skip(paginationDto.ToSkip())
+            .Take(paginationDto.ToTake())
+            .ToListAsync();
+
+        var dto = new ShopWithProductsDto
+        {
+            Id = shop.Id,
+            ShopName = shop.ShopName,
+            Address = _mapper.Map<AddressDto>(shop.Address),
+            Schedule = _mapper.Map<List<ScheduleDto>>(shop.Schedule),
+            Products = _mapper.Map<List<ProductDto>>(products)
+        };
+
+        return dto;
+    }
+    public async Task<List<RepresentativeShopDto>> GetAllShopsByRepresentativeId(string representativeId, PaginationDto paginationDto)
     {
         var shops = await _commerceDbContext.Shops
             .Where(s => s.MarketRepresentativeId == representativeId)
@@ -48,24 +75,34 @@ public class ShopsService : IShopsService
             .Where(u => userIds.Contains(u.Id))
             .ToDictionaryAsync(u => u.Id);
 
-        var shopsListDto = new List<RepresentativeShopsDto>();
+        var shopsListDto = new List<RepresentativeShopDto>();
 
         foreach (var shop in shops)
         {
-            // Assign the ApplicationUser entity before mapping, or assign later on DTO if you want
             if (marketRepresentativesDictionary.TryGetValue(shop.MarketRepresentativeId, out var user))
                 shop.MarketRepresentative = user;
             else
                 shop.MarketRepresentative = null;
 
-            // Use AutoMapper here
-            var dto = _mapper.Map<RepresentativeShopsDto>(shop);
+            var dto = _mapper.Map<RepresentativeShopDto>(shop);
             shopsListDto.Add(dto);
         }
 
         return shopsListDto;
     }
 
+    public async Task<List<ShopSummaryDto>> GetAllShops(PaginationDto paginationDto)
+    {
+        var shops = await _commerceDbContext.Shops
+           .Include(s => s.Address)
+           .Include(s => s.Schedule)
+           .Skip(paginationDto.ToSkip())
+           .Take(paginationDto.ToTake())
+           .ToListAsync();
+
+        var shopDtos = _mapper.Map<List<ShopSummaryDto>>(shops);
+        return shopDtos;
+    }
 
     public async Task<bool> EditShop(EditShopDto editShopDto)
     {
