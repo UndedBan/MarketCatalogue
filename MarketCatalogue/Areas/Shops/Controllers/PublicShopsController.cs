@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using MarketCatalogue.Commerce.Domain.Dtos.Shop;
+using MarketCatalogue.Commerce.Domain.Enumerations;
 using MarketCatalogue.Commerce.Domain.Interfaces;
 using MarketCatalogue.DependencyInjection.Helpers;
 using MarketCatalogue.Presentation.Areas.Shops.Models.ViewModels;
@@ -7,6 +8,7 @@ using MarketCatalogue.Presentation.Models;
 using MarketCatalogue.Shared.Domain.Dtos;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace MarketCatalogue.Presentation.Areas.Shops.Controllers;
 
@@ -45,14 +47,23 @@ public class PublicShopsController : Controller
 
         return View(viewModel);
     }
-    public async Task<IActionResult> ShopPage(int shopId, [FromQuery] int page = 1)
+    public async Task<IActionResult> ShopPage(int shopId, [FromQuery] int page = 1, [FromQuery] string? searchName = null,
+    [FromQuery] string? searchCategory = null)
     {
         var pagination = new PaginationDto(
             currentPage: page,
             itemsPerPage: ConfigurationHelper.GetValue<int>("Environment:PageSize")
         );
 
-        var shopWithPaginatedProducts = await _shopsService.GetShopWithProductsById(shopId, pagination);
+        var queryParams = $"shopId={shopId}";
+
+        if (!string.IsNullOrEmpty(searchName))
+            queryParams += $"&searchName={Uri.EscapeDataString(searchName)}";
+
+        if (!string.IsNullOrEmpty(searchCategory))
+            queryParams += $"&searchCategory={Uri.EscapeDataString(searchCategory)}";
+
+        var shopWithPaginatedProducts = await _shopsService.GetShopWithProductsById(shopId, pagination, searchName, searchCategory);
         var viewModel = new ShopWithProductsPaginatedViewModel
         {
             ShopWithProducts = _mapper.Map<ShopWithProductsViewModel>(shopWithPaginatedProducts),
@@ -60,8 +71,17 @@ public class PublicShopsController : Controller
             {
                 CurrentPage = shopWithPaginatedProducts.Products.CurrentPage,
                 LastPage = shopWithPaginatedProducts.Products.TotalPages,
-                Query = $"shopId={shopId}"
-            }
+                Query = queryParams
+            },
+            ProductCategories = Enum.GetValues(typeof(ProductCategory))
+                .Cast<ProductCategory>()
+                .Select(c => new SelectListItem
+                {
+                    Value = c.ToString(),
+                    Text = c.ToString()
+                }).ToList(),
+            SearchName = searchName,
+            SearchCategory = searchCategory
         };
         return View(viewModel);
     }

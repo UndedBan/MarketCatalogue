@@ -18,5 +18,9 @@ public interface IShopsService
     Task<bool> EditShop(EditShopDto shopUpdateDto);
     Task<bool> DeleteShopById(int shopId);
     Task<bool> CreateShop(ShopCreateDto shopCreateDto);
-    Task<ShopWithProductsDto> GetShopWithProductsById(int shopId, PaginationDto paginationDto);
+    Task<ShopWithProductsDto?> GetShopWithProductsById(
+    int shopId,
+    PaginationDto paginationDto,
+    string? searchName = null,
+    string? searchCategory = null);
 }
