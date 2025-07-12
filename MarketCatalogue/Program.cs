@@ -33,6 +33,7 @@ var mapperConfig = new MapperConfiguration(mc =>
 IMapper mapper = mapperConfig.CreateMapper();
 builder.Services.AddSingleton(mapper);
 builder.Services.AddControllersWithViews();
+builder.Services.AddMemoryCache();
 var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())
