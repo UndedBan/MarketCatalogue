@@ -13,6 +13,7 @@ using MarketCatalogue.Commerce.Infrastructure.Data;
 using MarketCatalogue.Shared.Domain.Dtos;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -29,15 +30,17 @@ public class ShopsService : IShopsService
     private readonly IGeocodingService _geocodingService;
     private readonly IMapper _mapper;
     private readonly ILogger<ShopsService> _logger;
+    private readonly IMemoryCache _cache;
 
     public ShopsService(CommerceDbContext commerceDbContext, UserManager<ApplicationUser> userManager,
-        IGeocodingService geocodingService, IMapper mapper, ILogger<ShopsService> logger)
+        IGeocodingService geocodingService, IMapper mapper, ILogger<ShopsService> logger, IMemoryCache cache)
     {
         _commerceDbContext = commerceDbContext;
         _userManager = userManager;
         _geocodingService = geocodingService;
         _mapper = mapper;
         _logger = logger;
+        _cache = cache;
     }
 
     public async Task<ShopWithProductsDto?> GetShopWithProductsById(
@@ -70,7 +73,6 @@ public class ShopsService : IShopsService
                 productsQuery = productsQuery.Where(p => p.Category == categoryEnum);
             }
         }
-
 
         var totalCount = await productsQuery.CountAsync();
 
@@ -149,6 +151,14 @@ public class ShopsService : IShopsService
 
     public async Task<PaginatedResultDto<ShopSummaryDto>> GetAllShops(PaginationDto paginationDto)
     {
+        var cacheKey = $"AllShops_Page{paginationDto.CurrentPage}_Size{paginationDto.ItemsPerPage}";
+
+        if (_cache.TryGetValue(cacheKey, out PaginatedResultDto<ShopSummaryDto>? cachedResult) 
+            && cachedResult is not null)
+        {
+            return cachedResult;
+        }
+
         var query = _commerceDbContext.Shops
             .AsNoTracking()
             .Include(s => s.Address)
@@ -163,13 +173,17 @@ public class ShopsService : IShopsService
 
         var shopDtos = _mapper.Map<List<ShopSummaryDto>>(shops);
 
-        return new PaginatedResultDto<ShopSummaryDto>
+        var paginatedResultDto = new PaginatedResultDto<ShopSummaryDto>
         {
             Items = shopDtos,
             CurrentPage = paginationDto.CurrentPage,
             ItemsPerPage = paginationDto.ItemsPerPage,
             TotalItems = totalCount
         };
+
+        _cache.Set(cacheKey, paginatedResultDto, TimeSpan.FromMinutes(10));
+
+        return paginatedResultDto;
     }
 
     public async Task<bool> EditShop(EditShopDto editShopDto)
