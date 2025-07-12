@@ -12,12 +12,15 @@ public class ShopMappingProfile : Profile
     public ShopMappingProfile()
     {
         // === Domain Entity ↔ DTOs ===
-        CreateMap<Shop, RepresentativeShopsDto>()
+        CreateMap<Shop, RepresentativeShopDto>()
             .ForMember(dest => dest.ProductCount, opt => opt.MapFrom(src => src.Products != null ? src.Products.Count : 0))
             .ForMember(dest => dest.MarketRepresentative, opt => opt.MapFrom(src => src.MarketRepresentative))
             .ForMember(dest => dest.Schedule, opt => opt.MapFrom(src => src.Schedule));
 
-        CreateMap<RepresentativeShopsDto, Shop>()
+        CreateMap<Shop, ShopSummaryDto>();
+        CreateMap<Schedule, ScheduleDto>();
+        CreateMap<Address, AddressDto>();
+        CreateMap<RepresentativeShopDto, Shop>()
             .ForMember(dest => dest.Products, opt => opt.Ignore())
             .ForMember(dest => dest.MarketRepresentative, opt => opt.MapFrom(src => src.MarketRepresentative))
             .ForMember(dest => dest.Address, opt => opt.MapFrom(src => src.Address))
@@ -34,8 +37,10 @@ public class ShopMappingProfile : Profile
             .ForMember(dest => dest.MarketRepresentative, opt => opt.Ignore());
 
         // === DTOs ↔ ViewModels ===
-        CreateMap<RepresentativeShopsDto, RepresentativeShopsViewModel>();
+        CreateMap<RepresentativeShopDto, RepresentativeShopsViewModel>();
         CreateMap<EditShopDto, EditShopViewModel>();
+        CreateMap<ProductDto, ProductViewModel>();
+        CreateMap<ShopWithProductsDto, ShopWithProductsViewModel>();
 
         // === DTOs ↔ Domain Value Objects ===
         CreateMap<AddressDto, Address>().ReverseMap();
