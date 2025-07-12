@@ -38,7 +38,6 @@
     <Folder Include="Areas\HomePage\Data\" />
     <Folder Include="Areas\HomePage\Models\" />
     <Folder Include="Areas\HomePage\Views\" />
-    <Folder Include="Areas\Shops\Controllers\" />
     <Folder Include="Areas\Shops\Data\" />
   </ItemGroup>
 
