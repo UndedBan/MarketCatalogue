@@ -1,4 +1,6 @@
-﻿using MarketCatalogue.Authentication.Domain.Entities;
+﻿using AutoMapper;
+using MarketCatalogue.Authentication.Domain.Entities;
+using MarketCatalogue.Commerce.Application.Mappings;
 using MarketCatalogue.Commerce.Domain.Dtos.Shop;
 using MarketCatalogue.Commerce.Domain.Entities;
 using MarketCatalogue.Commerce.Domain.Interfaces;
@@ -20,15 +22,18 @@ public class ShopsService : IShopsService
     private readonly CommerceDbContext _commerceDbContext;
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly IGeocodingService _geocodingService;
+    private readonly IMapper _mapper;
 
-    public ShopsService(CommerceDbContext commerceDbContext, UserManager<ApplicationUser> userManager, IGeocodingService geocodingService)
+    public ShopsService(CommerceDbContext commerceDbContext, UserManager<ApplicationUser> userManager, 
+        IGeocodingService geocodingService, IMapper mapper)
     {
         _commerceDbContext = commerceDbContext;
         _userManager = userManager;
         _geocodingService = geocodingService;
+        _mapper = mapper;
     }
 
-    public async Task<List<Shop>> GetAllShopsByRepresentativeId(string representativeId, PaginationDto paginationDto)
+    public async Task<List<RepresentativeShopsDto>> GetAllShopsByRepresentativeId(string representativeId, PaginationDto paginationDto)
     {
         var shops = await _commerceDbContext.Shops
             .Where(s => s.MarketRepresentativeId == representativeId)
@@ -43,24 +48,35 @@ public class ShopsService : IShopsService
             .Where(u => userIds.Contains(u.Id))
             .ToDictionaryAsync(u => u.Id);
 
+        var shopsListDto = new List<RepresentativeShopsDto>();
+
         foreach (var shop in shops)
         {
+            // Assign the ApplicationUser entity before mapping, or assign later on DTO if you want
             if (marketRepresentativesDictionary.TryGetValue(shop.MarketRepresentativeId, out var user))
                 shop.MarketRepresentative = user;
             else
                 shop.MarketRepresentative = null;
+
+            // Use AutoMapper here
+            var dto = _mapper.Map<RepresentativeShopsDto>(shop);
+            shopsListDto.Add(dto);
         }
 
-        return shops;
+        return shopsListDto;
     }
+
 
     public async Task<bool> EditShop(EditShopDto editShopDto)
     {
-        var shop = await GetShopById(editShopDto.Id);
+        var shop = await GetShopEntityById(editShopDto.Id);
         if (shop == null) return false;
 
-        shop.ShopName = editShopDto.ShopName;
+        _mapper.Map(editShopDto, shop);
+
         await UpdateShopAddress(shop, editShopDto.Address);
+
+        // Replace schedule
         UpdateShopSchedule(shop, editShopDto.Schedule);
 
         try
@@ -68,52 +84,25 @@ public class ShopsService : IShopsService
             await _commerceDbContext.SaveChangesAsync();
             return true;
         }
-        catch (Exception ex)
+        catch
         {
-            // Optional: log the exception
             return false;
         }
     }
 
-
-    public async Task<Shop> GetShopById(int shopId)
+    public async Task<EditShopDto> GetShopDetailsById(int shopId)
     {
-        var shop = await _commerceDbContext.Shops
-            .Where(s => s.Id == shopId)
-            .Include(s => s.Schedule)
-            .Include(s => s.Address)
-            .FirstOrDefaultAsync();
+        var shop = await GetShopEntityById(shopId);
+        
+        shop.MarketRepresentative = await _userManager.Users
+            .FirstOrDefaultAsync(u => u.Id == shop.MarketRepresentativeId);
 
-        var marketRepresentative = await _userManager.Users
-            .Where(u => u.Id == shop.MarketRepresentativeId)
-            .FirstOrDefaultAsync();
-
-        shop.MarketRepresentative = marketRepresentative;
-
-        return shop;
+        return _mapper.Map<EditShopDto>(shop);
     }
 
     public async Task<bool> CreateShop(ShopCreateDto shopCreateDto)
     {
-        var shop = new Shop
-        {
-            ShopName = shopCreateDto.ShopName,
-            Address = new Address
-            {
-                Street = shopCreateDto.Address.Street,
-                City = shopCreateDto.Address.City,
-                State = shopCreateDto.Address.State,
-                PostalCode = shopCreateDto.Address.PostalCode,
-                Country = shopCreateDto.Address.Country,
-            },
-            MarketRepresentativeId = shopCreateDto.MarketRepresentativeId ?? string.Empty,
-            Schedule = shopCreateDto.Schedule?.Select(s => new Schedule
-            {
-                Day = s.Day,
-                OpenTime = s.OpenTime,
-                CloseTime = s.CloseTime
-            }).ToList()
-        };
+        var shop = _mapper.Map<Shop>(shopCreateDto);
 
         var coordinates = await _geocodingService.GetCoordinatesAsync(shopCreateDto.Address);
 
@@ -174,6 +163,14 @@ public class ShopsService : IShopsService
             OpenTime = s.OpenTime,
             CloseTime = s.CloseTime
         }).ToList() ?? new List<Schedule>();
+    }
+
+    private async Task<Shop?> GetShopEntityById(int id)
+    {
+        return await _commerceDbContext.Shops
+            .Include(s => s.Schedule)
+            .Include(s => s.Address)
+            .FirstOrDefaultAsync(s => s.Id == id);
     }
     #endregion
 }

@@ -11,8 +11,8 @@ namespace MarketCatalogue.Commerce.Domain.Interfaces;
 
 public interface IShopsService
 {
-    Task<List<Shop>> GetAllShopsByRepresentativeId(string representativeId, PaginationDto paginationDto);
-    Task<Shop> GetShopById(int shopId);
+    Task<List<RepresentativeShopsDto>> GetAllShopsByRepresentativeId(string representativeId, PaginationDto paginationDto);
+    Task<EditShopDto> GetShopDetailsById(int shopId);
     Task<bool> EditShop(EditShopDto shopUpdateDto);
     Task<bool> DeleteShopById(int shopId);
     Task<bool> CreateShop(ShopCreateDto shopCreateDto);
