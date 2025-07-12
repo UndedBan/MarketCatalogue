@@ -12,7 +12,7 @@ namespace MarketCatalogue.Commerce.Domain.Interfaces;
 public interface ICartService
 {
     Task<bool> AddToCart(AddToCartDto addToCartDto);
-    Task<ViewCartDto> GetCartByUserId(string userId, PaginationDto paginationDto);
+    Task<ViewCartDto?> GetCartByUserId(string userId, PaginationDto paginationDto);
     Task<bool> UpdateQuantity(UpdateQuantityDto quantityDto);
     Task<bool> DeleteCartItem(int cartItemId);
 }

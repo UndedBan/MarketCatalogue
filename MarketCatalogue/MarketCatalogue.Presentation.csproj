@@ -34,10 +34,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Areas\HomePage\Controllers\" />
-    <Folder Include="Areas\HomePage\Data\" />
-    <Folder Include="Areas\HomePage\Models\" />
-    <Folder Include="Areas\HomePage\Views\" />
     <Folder Include="Areas\Products\Data\" />
     <Folder Include="Areas\Purchasers\Data\" />
     <Folder Include="Areas\Shops\Data\" />

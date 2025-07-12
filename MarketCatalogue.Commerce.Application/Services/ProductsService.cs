@@ -1,5 +1,7 @@
 ﻿using AutoMapper;
 using AutoMapper.QueryableExtensions;
+using MarketCatalogue.Commerce.Application.Exceptions;
+using MarketCatalogue.Commerce.Application.Exceptions.Product;
 using MarketCatalogue.Commerce.Domain.Dtos.Product;
 using MarketCatalogue.Commerce.Domain.Entities;
 using MarketCatalogue.Commerce.Domain.Interfaces;
@@ -39,7 +41,7 @@ public class ProductsService : IProductsService
             .FirstOrDefaultAsync(p => p.Id == productEditDto.Id);
 
         if (product == null)
-            return false;
+            throw new ProductNotFoundException("Edit product failed. ");
 
         product.Name = productEditDto.Name;
         product.Quantity = productEditDto.Quantity;
@@ -58,6 +60,9 @@ public class ProductsService : IProductsService
             .Where(p => p.Id == productId)
             .ProjectTo<ProductDetailsDto>(_mapper.ConfigurationProvider)
             .FirstOrDefaultAsync();
+
+        if (editProductDto == null)
+            throw new ProductNotFoundException("Edit product failed. ");
 
         return editProductDto;
     }

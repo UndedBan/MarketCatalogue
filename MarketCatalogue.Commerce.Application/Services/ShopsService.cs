@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using MarketCatalogue.Authentication.Domain.Entities;
+using MarketCatalogue.Commerce.Application.Exceptions.Shop;
 using MarketCatalogue.Commerce.Application.Mappings;
 using MarketCatalogue.Commerce.Domain.Dtos.Product;
 using MarketCatalogue.Commerce.Domain.Dtos.Shared;
@@ -12,6 +13,7 @@ using MarketCatalogue.Commerce.Infrastructure.Data;
 using MarketCatalogue.Shared.Domain.Dtos;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -26,14 +28,16 @@ public class ShopsService : IShopsService
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly IGeocodingService _geocodingService;
     private readonly IMapper _mapper;
+    private readonly ILogger<ShopsService> _logger;
 
-    public ShopsService(CommerceDbContext commerceDbContext, UserManager<ApplicationUser> userManager, 
-        IGeocodingService geocodingService, IMapper mapper)
+    public ShopsService(CommerceDbContext commerceDbContext, UserManager<ApplicationUser> userManager,
+        IGeocodingService geocodingService, IMapper mapper, ILogger<ShopsService> logger)
     {
         _commerceDbContext = commerceDbContext;
         _userManager = userManager;
         _geocodingService = geocodingService;
         _mapper = mapper;
+        _logger = logger;
     }
 
     public async Task<ShopWithProductsDto?> GetShopWithProductsById(
@@ -98,6 +102,7 @@ public class ShopsService : IShopsService
     string representativeId, PaginationDto paginationDto)
     {
         var query = _commerceDbContext.Shops
+            .AsNoTracking()
             .Where(s => s.MarketRepresentativeId == representativeId)
             .Include(s => s.Schedule);
 
@@ -118,7 +123,16 @@ public class ShopsService : IShopsService
 
         foreach (var shop in shops)
         {
-            shop.MarketRepresentative = marketRepresentativesDictionary.GetValueOrDefault(shop.MarketRepresentativeId);
+            if (!marketRepresentativesDictionary.TryGetValue(shop.MarketRepresentativeId, out var representative))
+            {
+                _logger.LogWarning(
+                    "Market representative with ID '{RepId}' was not found for shop ID {ShopId}. Skipping this shop.",
+                    shop.MarketRepresentativeId, shop.Id);
+                continue;
+            }
+
+            shop.MarketRepresentative = representative;
+
             var dto = _mapper.Map<RepresentativeShopDto>(shop);
             shopsListDto.Add(dto);
         }
@@ -136,6 +150,7 @@ public class ShopsService : IShopsService
     public async Task<PaginatedResultDto<ShopSummaryDto>> GetAllShops(PaginationDto paginationDto)
     {
         var query = _commerceDbContext.Shops
+            .AsNoTracking()
             .Include(s => s.Address)
             .Include(s => s.Schedule);
 
@@ -160,7 +175,8 @@ public class ShopsService : IShopsService
     public async Task<bool> EditShop(EditShopDto editShopDto)
     {
         var shop = await GetShopEntityById(editShopDto.Id);
-        if (shop == null) return false;
+        if (shop is null)
+            throw new ShopNotFoundException($"Shop with ID {editShopDto.Id} was not found.");
 
         _mapper.Map(editShopDto, shop);
 
@@ -168,26 +184,28 @@ public class ShopsService : IShopsService
 
         UpdateShopSchedule(shop, editShopDto.Schedule);
 
-        try
-        {
-            await _commerceDbContext.SaveChangesAsync();
-            return true;
-        }
-        catch
-        {
-            return false;
-        }
+        var result = await _commerceDbContext.SaveChangesAsync();
+        return result > 0;
     }
 
     public async Task<EditShopDto> GetShopDetailsById(int shopId)
     {
         var shop = await GetShopEntityById(shopId);
-        
-        shop.MarketRepresentative = await _userManager.Users
+
+        if (shop == null)
+            throw new ShopNotFoundException($"Shop with ID {shopId} was not found.");
+
+        var marketRepresentative = await _userManager.Users
             .FirstOrDefaultAsync(u => u.Id == shop.MarketRepresentativeId);
+
+        if (marketRepresentative == null)
+            throw new MarketRepresentativeNotFoundException($"Market representative with ID {shop.MarketRepresentativeId} was not found.");
+
+        shop.MarketRepresentative = marketRepresentative;
 
         return _mapper.Map<EditShopDto>(shop);
     }
+
 
     public async Task<bool> CreateShop(ShopCreateDto shopCreateDto)
     {
@@ -214,14 +232,15 @@ public class ShopsService : IShopsService
             .FirstOrDefaultAsync(s => s.Id == shopId);
 
         if (shop == null)
-            return false;
+            throw new ShopNotFoundException($"Shop with ID {shopId} not found.");
 
         _commerceDbContext.Shops.Remove(shop);
-        await _commerceDbContext.SaveChangesAsync();
-        return true;
+        var result = await _commerceDbContext.SaveChangesAsync();
+        return result > 0;
     }
 
-#region Helpers
+
+    #region Helpers
     private async Task UpdateShopAddress(Shop shop, AddressDto addressDto)
     {
         if (shop.Address == null)

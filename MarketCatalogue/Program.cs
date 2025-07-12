@@ -8,6 +8,7 @@ using MarketCatalogue.Authentication.Infrastructure.Data;
 using AutoMapper;
 using MarketCatalogue.Presentation;
 using MarketCatalogue.Presentation.Automapper;
+using MarketCatalogue.Presentation.Middlewares;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -87,7 +88,7 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
-
+app.UseMiddleware<ExceptionHandlingMiddleware>();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllerRoute(
