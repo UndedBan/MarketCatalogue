@@ -60,7 +60,7 @@ public class ShopsService : IShopsService
         if (shop == null) return false;
 
         shop.ShopName = editShopDto.ShopName;
-        UpdateShopAddress(shop, editShopDto.Address);
+        await UpdateShopAddress(shop, editShopDto.Address);
         UpdateShopSchedule(shop, editShopDto.Schedule);
 
         try
@@ -117,8 +117,11 @@ public class ShopsService : IShopsService
 
         var coordinates = await _geocodingService.GetCoordinatesAsync(shopCreateDto.Address);
 
-        shop.Address.Longitude = coordinates.Value.Longitude;
-        shop.Address.Latitude = coordinates.Value.Latitude;
+        if (coordinates != null)
+        {
+            shop.Address.Longitude = coordinates.Value.Longitude;
+            shop.Address.Latitude = coordinates.Value.Latitude;
+        }
 
         _commerceDbContext.Shops.Add(shop);
         var result = await _commerceDbContext.SaveChangesAsync();
@@ -141,7 +144,7 @@ public class ShopsService : IShopsService
     }
 
 #region Helpers
-    private void UpdateShopAddress(Shop shop, AddressDto addressDto)
+    private async Task UpdateShopAddress(Shop shop, AddressDto addressDto)
     {
         if (shop.Address == null)
             shop.Address = new Address();
@@ -151,6 +154,13 @@ public class ShopsService : IShopsService
         shop.Address.State = addressDto.State;
         shop.Address.PostalCode = addressDto.PostalCode;
         shop.Address.Country = addressDto.Country;
+
+        var coordinates = await _geocodingService.GetCoordinatesAsync(addressDto);
+        if (coordinates != null)
+        {
+            shop.Address.Longitude = coordinates.Value.Longitude;
+            shop.Address.Latitude = coordinates.Value.Latitude;
+        }
     }
 
     private void UpdateShopSchedule(Shop shop, List<ScheduleDto>? newSchedule)
