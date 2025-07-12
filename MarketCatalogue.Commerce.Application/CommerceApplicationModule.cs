@@ -11,5 +11,6 @@ public class CommerceApplicationModule : IModule
     {
         services.AddScoped<IShopsService, ShopsService>();
         services.AddScoped<IProductsService, ProductsService>();
+        services.AddScoped<ICartService, CartService>();
     }
 }
