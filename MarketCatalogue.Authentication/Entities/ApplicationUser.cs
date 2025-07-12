@@ -16,4 +16,5 @@ public class ApplicationUser : IdentityUser
     public required string LastName { get; set; }
     [Required]
     public required DateTime Birthday { get; set; }
+    public decimal Balance { get; set; } = 1500;
 }
