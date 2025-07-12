@@ -25,6 +25,7 @@ builder.Services.AddIdentity();
 var mapperConfig = new MapperConfiguration(mc =>
 {
     mc.AddProfile(new ShopMappingProfile());
+    mc.AddProfile(new ProductMappingProfile());
 });
 
 IMapper mapper = mapperConfig.CreateMapper();

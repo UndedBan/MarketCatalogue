@@ -1,8 +1,11 @@
 ﻿using AutoMapper;
 using MarketCatalogue.Authentication.Domain.Entities;
 using MarketCatalogue.Commerce.Application.Mappings;
+using MarketCatalogue.Commerce.Domain.Dtos.Product;
+using MarketCatalogue.Commerce.Domain.Dtos.Shared;
 using MarketCatalogue.Commerce.Domain.Dtos.Shop;
 using MarketCatalogue.Commerce.Domain.Entities;
+using MarketCatalogue.Commerce.Domain.Enumerations;
 using MarketCatalogue.Commerce.Domain.Interfaces;
 using MarketCatalogue.Commerce.Domain.ValueObjects;
 using MarketCatalogue.Commerce.Infrastructure.Data;
@@ -33,7 +36,11 @@ public class ShopsService : IShopsService
         _mapper = mapper;
     }
 
-    public async Task<ShopWithProductsDto> GetShopWithProductsById(int shopId, PaginationDto paginationDto)
+    public async Task<ShopWithProductsDto?> GetShopWithProductsById(
+    int shopId,
+    PaginationDto paginationDto,
+    string? searchName = null,
+    string? searchCategory = null)
     {
         var shop = await _commerceDbContext.Shops
             .Include(s => s.Address)
@@ -43,8 +50,27 @@ public class ShopsService : IShopsService
         if (shop == null)
             return null;
 
-        var products = await _commerceDbContext.Products
-            .Where(p => p.ShopId == shopId)
+        var productsQuery = _commerceDbContext.Products
+            .Where(p => p.ShopId == shopId);
+
+        if (!string.IsNullOrEmpty(searchName))
+        {
+            var loweredName = searchName.ToLower();
+            productsQuery = productsQuery.Where(p => p.Name.ToLower().Contains(loweredName));
+        }
+
+        if (!string.IsNullOrEmpty(searchCategory))
+        {
+            if (Enum.TryParse<ProductCategory>(searchCategory, ignoreCase: true, out var categoryEnum))
+            {
+                productsQuery = productsQuery.Where(p => p.Category == categoryEnum);
+            }
+        }
+
+
+        var totalCount = await productsQuery.CountAsync();
+
+        var products = await productsQuery
             .Skip(paginationDto.ToSkip())
             .Take(paginationDto.ToTake())
             .ToListAsync();
@@ -55,16 +81,29 @@ public class ShopsService : IShopsService
             ShopName = shop.ShopName,
             Address = _mapper.Map<AddressDto>(shop.Address),
             Schedule = _mapper.Map<List<ScheduleDto>>(shop.Schedule),
-            Products = _mapper.Map<List<ProductDto>>(products)
+            Products = new PaginatedResultDto<ProductDto>
+            {
+                Items = _mapper.Map<List<ProductDto>>(products),
+                CurrentPage = paginationDto.CurrentPage,
+                ItemsPerPage = paginationDto.ItemsPerPage,
+                TotalItems = totalCount
+            }
         };
 
         return dto;
     }
-    public async Task<List<RepresentativeShopDto>> GetAllShopsByRepresentativeId(string representativeId, PaginationDto paginationDto)
+
+
+    public async Task<PaginatedResultDto<RepresentativeShopDto>> GetAllShopsByRepresentativeId(
+    string representativeId, PaginationDto paginationDto)
     {
-        var shops = await _commerceDbContext.Shops
+        var query = _commerceDbContext.Shops
             .Where(s => s.MarketRepresentativeId == representativeId)
-            .Include(s => s.Schedule)
+            .Include(s => s.Schedule);
+
+        var totalCount = await query.CountAsync();
+
+        var shops = await query
             .Skip(paginationDto.ToSkip())
             .Take(paginationDto.ToTake())
             .ToListAsync();
@@ -79,29 +118,43 @@ public class ShopsService : IShopsService
 
         foreach (var shop in shops)
         {
-            if (marketRepresentativesDictionary.TryGetValue(shop.MarketRepresentativeId, out var user))
-                shop.MarketRepresentative = user;
-            else
-                shop.MarketRepresentative = null;
-
+            shop.MarketRepresentative = marketRepresentativesDictionary.GetValueOrDefault(shop.MarketRepresentativeId);
             var dto = _mapper.Map<RepresentativeShopDto>(shop);
             shopsListDto.Add(dto);
         }
 
-        return shopsListDto;
+        return new PaginatedResultDto<RepresentativeShopDto>
+        {
+            Items = shopsListDto,
+            CurrentPage = paginationDto.CurrentPage,
+            ItemsPerPage = paginationDto.ItemsPerPage,
+            TotalItems = totalCount
+        };
     }
 
-    public async Task<List<ShopSummaryDto>> GetAllShops(PaginationDto paginationDto)
+
+    public async Task<PaginatedResultDto<ShopSummaryDto>> GetAllShops(PaginationDto paginationDto)
     {
-        var shops = await _commerceDbContext.Shops
-           .Include(s => s.Address)
-           .Include(s => s.Schedule)
-           .Skip(paginationDto.ToSkip())
-           .Take(paginationDto.ToTake())
-           .ToListAsync();
+        var query = _commerceDbContext.Shops
+            .Include(s => s.Address)
+            .Include(s => s.Schedule);
+
+        var totalCount = await query.CountAsync();
+
+        var shops = await query
+            .Skip(paginationDto.ToSkip())
+            .Take(paginationDto.ToTake())
+            .ToListAsync();
 
         var shopDtos = _mapper.Map<List<ShopSummaryDto>>(shops);
-        return shopDtos;
+
+        return new PaginatedResultDto<ShopSummaryDto>
+        {
+            Items = shopDtos,
+            CurrentPage = paginationDto.CurrentPage,
+            ItemsPerPage = paginationDto.ItemsPerPage,
+            TotalItems = totalCount
+        };
     }
 
     public async Task<bool> EditShop(EditShopDto editShopDto)
@@ -113,7 +166,6 @@ public class ShopsService : IShopsService
 
         await UpdateShopAddress(shop, editShopDto.Address);
 
-        // Replace schedule
         UpdateShopSchedule(shop, editShopDto.Schedule);
 
         try

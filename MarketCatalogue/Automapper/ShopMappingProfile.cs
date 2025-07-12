@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using MarketCatalogue.Commerce.Domain.Dtos.Product;
 using MarketCatalogue.Commerce.Domain.Dtos.Shop;
 using MarketCatalogue.Commerce.Domain.Entities;
 using MarketCatalogue.Commerce.Domain.ValueObjects;
@@ -37,10 +38,11 @@ public class ShopMappingProfile : Profile
             .ForMember(dest => dest.MarketRepresentative, opt => opt.Ignore());
 
         // === DTOs ↔ ViewModels ===
-        CreateMap<RepresentativeShopDto, RepresentativeShopsViewModel>();
+        CreateMap<RepresentativeShopDto, RepresentativeShopViewModel>();
         CreateMap<EditShopDto, EditShopViewModel>();
         CreateMap<ProductDto, ProductViewModel>();
-        CreateMap<ShopWithProductsDto, ShopWithProductsViewModel>();
+        CreateMap<ShopWithProductsDto, ShopWithProductsViewModel>()
+    .ForMember(dest => dest.Products, opt => opt.MapFrom(src => src.Products.Items));
 
         // === DTOs ↔ Domain Value Objects ===
         CreateMap<AddressDto, Address>().ReverseMap();
