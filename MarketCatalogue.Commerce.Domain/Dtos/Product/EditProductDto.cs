@@ -1,8 +1,13 @@
 ﻿using MarketCatalogue.Commerce.Domain.Enumerations;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
-namespace MarketCatalogue.Presentation.Areas.Shops.Models.ViewModels;
+namespace MarketCatalogue.Commerce.Domain.Dtos.Product;
 
-public class ProductViewModel
+public class EditProductDto
 {
     public int Id { get; set; }
     public string Name { get; set; } = null!;

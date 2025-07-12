@@ -1,26 +1,55 @@
-﻿@model MarketCatalogue.Presentation.Areas.Shops.Models.ViewModels.ShopWithProductsViewModel
+﻿@model MarketCatalogue.Presentation.Areas.Shops.Models.ViewModels.ShopWithProductsPaginatedViewModel
 
 @{
-    ViewData["Title"] = Model.ShopName;
+    ViewData["Title"] = Model.ShopWithProducts.ShopName;
+}
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            var latStr = "@(Model.ShopWithProducts.Address.Latitude?.ToString("F6", System.Globalization.CultureInfo.InvariantCulture) ?? "")";
+            var lngStr = "@(Model.ShopWithProducts.Address.Longitude?.ToString("F6", System.Globalization.CultureInfo.InvariantCulture) ?? "")";
+
+            if (latStr && lngStr) {
+                var lat = parseFloat(latStr);
+                var lng = parseFloat(lngStr);
+
+                var map = L.map('shopMap').setView([lat, lng], 15);
+
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    maxZoom: 19,
+                    attribution: '&copy; OpenStreetMap contributors'
+                }).addTo(map);
+
+                L.marker([lat, lng]).addTo(map)
+                    .bindPopup('@Model.ShopWithProducts.ShopName')
+                    .openPopup();
+            } else {
+                document.getElementById('shopMap').innerHTML = '<p class="text-muted">No location data available.</p>';
+            }
+        });
+    </script>
 }
 
-<h2>@Model.ShopName</h2>
+<h2>@Model.ShopWithProducts.ShopName</h2>
 
 <div>
     <h4>Address</h4>
     <address>
-        @Model.Address.Street <br />
-        @Model.Address.City, @Model.Address.State @Model.Address.PostalCode <br />
-        @Model.Address.Country
+        @Model.ShopWithProducts.Address.Street <br />
+        @Model.ShopWithProducts.Address.City, @Model.ShopWithProducts.Address.State @Model.ShopWithProducts.Address.PostalCode <br />
+        @Model.ShopWithProducts.Address.Country
     </address>
+    <h4 class="mt-5">Shop Location</h4>
+    <div id="shopMap" style="height: 400px;" class="mb-4 rounded shadow-sm border"></div>
 </div>
 
 <div>
     <h4>Schedule</h4>
-    @if (Model.Schedule != null && Model.Schedule.Any())
+    @if (Model.ShopWithProducts.Schedule != null && Model.ShopWithProducts.Schedule.Any())
     {
         <ul>
-            @foreach (var scheduleEntry in Model.Schedule.OrderBy(s => s.Day))
+            @foreach (var scheduleEntry in Model.ShopWithProducts.Schedule.OrderBy(s => s.Day))
             {
                 <li>
                     <strong>@scheduleEntry.Day:</strong>
@@ -38,8 +67,53 @@
 </div>
 
 <div>
-    <h4>Products</h4>
-    @if (Model.Products != null && Model.Products.Any())
+    <div class="d-flex justify-content-between align-items-center">
+        <h4>Products</h4>
+
+        @if (User.IsInRole("Market Representative"))
+        {
+            <a class="btn btn-sm btn-primary"
+               asp-area="Products"
+               asp-controller="Products"
+               asp-action="CreateProduct"
+               asp-route-shopId="@Model.ShopWithProducts.Id"
+               asp-route-shopName="@Model.ShopWithProducts.ShopName">
+                <i class="bi bi-plus-circle me-1"></i> Add Product
+            </a>
+        }
+    </div>
+    <form method="get" class="mb-4">
+    <input type="hidden" name="shopId" value="@Model.ShopWithProducts.Id" />
+
+    <div class="row g-2">
+        <div class="col-md-5">
+            <input 
+                type="text" 
+                name="searchName" 
+                value="@Model.SearchName" 
+                placeholder="Search by product name" 
+                class="form-control" />
+        </div>
+
+        <div class="col-md-4">
+            <select name="searchCategory" class="form-select">
+            <option value="">All Categories</option>
+            @foreach (var category in Model.ProductCategories)
+            {
+                        <option value="@category.Value" selected="@(category.Value == Model.SearchCategory ? "selected" : null)">
+                    @category.Text
+                </option>
+            }
+            </select>
+        </div>
+
+        <div class="col-md-3">
+            <button type="submit" class="btn btn-primary w-100">Search</button>
+        </div>
+    </div>
+</form>
+
+    @if (Model.ShopWithProducts.Products != null && Model.ShopWithProducts.Products.Any())
     {
         <table class="table table-striped">
             <thead>
@@ -48,22 +122,38 @@
                     <th>Category</th>
                     <th>Quantity</th>
                     <th>Price</th>
+                    @if (User.IsInRole("Market Representative"))
+                    {
+                        <th>Actions</th>
+                    }
                 </tr>
             </thead>
             <tbody>
-                @foreach (var product in Model.Products)
+                @foreach (var product in Model.ShopWithProducts.Products)
                 {
                     <tr>
                         <td>@product.Name</td>
-                        <td>@product.Category</td>
+                        <td>@product.Category.ToString()</td>
                         <td>@product.Quantity</td>
                         <td>@product.Price.ToString("C")</td>
+                        @if (User.IsInRole("Market Representative"))
+                        {
+                            <td>
+                                <a class="btn btn-sm btn-outline-primary"
+                                   asp-area="Products"
+                                   asp-controller="Products"
+                                   asp-action="EditProduct"
+                                   asp-route-productId="@product.Id">
+                                    Edit
+                                </a>
+                            </td>
+                        }
                     </tr>
                 }
             </tbody>
         </table>
 
-        <!-- TODO: Add pagination controls here -->
+        @await Html.PartialAsync("_Pagination", Model.Pagination)
     }
     else
     {
