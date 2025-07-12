@@ -26,6 +26,7 @@ var mapperConfig = new MapperConfiguration(mc =>
 {
     mc.AddProfile(new ShopMappingProfile());
     mc.AddProfile(new ProductMappingProfile());
+    mc.AddProfile(new CartMappingProfile());
 });
 
 IMapper mapper = mapperConfig.CreateMapper();
