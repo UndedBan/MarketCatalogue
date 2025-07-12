@@ -104,9 +104,9 @@ public class ShopsService : IShopsService
     string representativeId, PaginationDto paginationDto)
     {
         var query = _commerceDbContext.Shops
-            .AsNoTracking()
             .Where(s => s.MarketRepresentativeId == representativeId)
-            .Include(s => s.Schedule);
+            .Include(s => s.Schedule)
+            .Include(s => s.Products);
 
         var totalCount = await query.CountAsync();
 
@@ -160,7 +160,6 @@ public class ShopsService : IShopsService
         }
 
         var query = _commerceDbContext.Shops
-            .AsNoTracking()
             .Include(s => s.Address)
             .Include(s => s.Schedule);
 
@@ -191,6 +190,9 @@ public class ShopsService : IShopsService
         var shop = await GetShopEntityById(editShopDto.Id);
         if (shop is null)
             throw new ShopNotFoundException($"Shop with ID {editShopDto.Id} was not found.");
+
+        if (shop.Schedule?.Any() == true)
+            _commerceDbContext.Schedules.RemoveRange(shop.Schedule);
 
         _mapper.Map(editShopDto, shop);
 
@@ -276,9 +278,6 @@ public class ShopsService : IShopsService
 
     private void UpdateShopSchedule(Shop shop, List<ScheduleDto>? newSchedule)
     {
-        if (shop.Schedule != null && shop.Schedule.Any())
-            _commerceDbContext.Schedules.RemoveRange(shop.Schedule);
-
         shop.Schedule = newSchedule?.Select(s => new Schedule
         {
             Day = s.Day,

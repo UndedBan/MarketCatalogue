@@ -18,5 +18,5 @@ public class EditShopDto
     public AddressDto Address { get; set; } = new();
 
     public List<ScheduleDto>? Schedule { get; set; }
-
+    public ApplicationUser MarketRepresentative { get; set; }
 }

@@ -35,7 +35,8 @@ public class ShopMappingProfile : Profile
         CreateMap<Shop, EditShopDto>();
         CreateMap<EditShopDto, Shop>()
             .ForMember(dest => dest.Products, opt => opt.Ignore())
-            .ForMember(dest => dest.MarketRepresentative, opt => opt.Ignore());
+            .ForMember(dest => dest.MarketRepresentative, opt => opt.Ignore())
+            .ForMember(dest => dest.MarketRepresentativeId, opt => opt.Ignore());
 
         // === DTOs ↔ ViewModels ===
         CreateMap<RepresentativeShopDto, RepresentativeShopViewModel>();
