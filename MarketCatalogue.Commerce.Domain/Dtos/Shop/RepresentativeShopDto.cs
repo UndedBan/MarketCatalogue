@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace MarketCatalogue.Commerce.Domain.Dtos.Shop;
 
-public class RepresentativeShopsDto
+public class RepresentativeShopDto
 {
     public int Id { get; set; }
     public required string ShopName { get; set; }
