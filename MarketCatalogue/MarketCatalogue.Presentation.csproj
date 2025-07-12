@@ -8,6 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="AutoMapper" Version="8.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.Components.QuickGrid.EntityFrameworkAdapter" Version="8.0.11" />
     <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="8.0.11" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="8.0.11" />
@@ -25,6 +26,7 @@
     <ProjectReference Include="..\MarketCatalogue.Authentication.Application\MarketCatalogue.Authentication.Application.csproj" />
     <ProjectReference Include="..\MarketCatalogue.Authentication.Infrastructure\MarketCatalogue.Authentication.Infrastructure.csproj" />
     <ProjectReference Include="..\MarketCatalogue.Commerce.Application\MarketCatalogue.Commerce.Application.csproj" />
+    <ProjectReference Include="..\MarketCatalogue.Commerce.Domain\MarketCatalogue.Commerce.Domain.csproj" />
     <ProjectReference Include="..\MarketCatalogue.Commerce.Infrastructure\MarketCatalogue.Commerce.Infrastructure.csproj" />
     <ProjectReference Include="..\MarketCatalogue.DependencyInjection\MarketCatalogue.DependencyInjection.csproj" />
     <ProjectReference Include="..\MarketCatalogue.Shared.Core\MarketCatalogue.Shared.Application.csproj" />

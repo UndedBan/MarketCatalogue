@@ -5,6 +5,9 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using MarketCatalogue.Authentication.Application.Extensions;
 using MarketCatalogue.Authentication.Infrastructure.Data;
+using AutoMapper;
+using MarketCatalogue.Presentation;
+using MarketCatalogue.Presentation.Automapper;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -19,9 +22,14 @@ builder.Services.ConfigureDbContexts(config);
 builder.Services.ConfigureOptions(config);
 builder.Services.ConfigureDependencyInjection();
 builder.Services.AddIdentity();
+var mapperConfig = new MapperConfiguration(mc =>
+{
+    mc.AddProfile(new ShopMappingProfile());
+});
 
+IMapper mapper = mapperConfig.CreateMapper();
+builder.Services.AddSingleton(mapper);
 builder.Services.AddControllersWithViews();
-
 var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())

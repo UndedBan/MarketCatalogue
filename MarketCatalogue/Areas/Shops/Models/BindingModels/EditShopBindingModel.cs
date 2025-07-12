@@ -19,28 +19,4 @@ public class EditShopBindingModel
         Id = id;
     }
     public EditShopBindingModel() { }
-
-    public EditShopDto ToEditShopDto()
-    {
-        return new EditShopDto
-        {
-            Id = Id,
-            ShopName = ShopName,
-            Address = new AddressDto
-            {
-                Street = Address.Street,
-                City = Address.City,
-                State = Address.State,
-                PostalCode = Address.PostalCode,
-                Country = Address.Country
-            },
-            Schedule = Schedule?
-                .Select(s => new ScheduleDto
-                {
-                    Day = s.Day,
-                    OpenTime = s.OpenTime,
-                    CloseTime = s.CloseTime
-                }).ToList()
-        };
-    }
 }
