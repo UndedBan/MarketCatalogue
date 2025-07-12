@@ -1,4 +1,7 @@
 ﻿using AutoMapper;
+using MarketCatalogue.Authentication.Domain.Entities;
+using MarketCatalogue.Commerce.Application.Exceptions;
+using MarketCatalogue.Commerce.Application.Exceptions.CartItem;
 using MarketCatalogue.Commerce.Domain.Dtos.Cart;
 using MarketCatalogue.Commerce.Domain.Dtos.Product;
 using MarketCatalogue.Commerce.Domain.Dtos.Shared;
@@ -33,23 +36,13 @@ public class CartService : ICartService
             .Include(c => c.Items)
             .FirstOrDefaultAsync(c => c.ApplicationUserId == addToCartDto.ApplicationUserId);
 
-        if (userCart == null)
-        {
-            userCart = new Cart
-            {
-                ApplicationUserId = addToCartDto.ApplicationUserId,
-                Items = new List<CartItem>()
-            };
+        userCart ??= CreateUserCart(addToCartDto.ApplicationUserId);
 
-            await _commerceDbContext.Carts.AddAsync(userCart);
-        }
-
-        var existingItem = userCart.Items.FirstOrDefault(i => i.ProductId == addToCartDto.ProductId);
+        var existingItem = userCart.Items
+            .FirstOrDefault(i => i.ProductId == addToCartDto.ProductId);
 
         if (existingItem != null)
-        {
             existingItem.Quantity += addToCartDto.Quantity;
-        }
         else
         {
             var cartItemToAdd = _mapper.Map<CartItem>(addToCartDto);
@@ -60,20 +53,18 @@ public class CartService : ICartService
         return result > 0;
     }
 
-    public async Task<ViewCartDto> GetCartByUserId(string userId, PaginationDto paginationDto)
+    public async Task<ViewCartDto?> GetCartByUserId(string userId, PaginationDto paginationDto)
     {
         var cart = await _commerceDbContext.Carts
             .Where(c => c.ApplicationUserId ==  userId)
             .FirstOrDefaultAsync();
 
-        if (cart is not Cart)
-            return null;
+        cart ??= CreateUserCart(userId);
 
         var cartItemsQuery = _commerceDbContext.CartItems
             .Where(ci => ci.CartId == cart.Id);
 
         var totalCount = await cartItemsQuery.CountAsync();
-
 
         var cartItems = await cartItemsQuery
             .Include(ci => ci.Product)
@@ -107,6 +98,9 @@ public class CartService : ICartService
             .Where(ci => ci.Id == quantityDto.CartItemId)
             .FirstOrDefaultAsync();
 
+        if (cartItem is null)
+            throw new CartItemDoesNotExistException("Cart item does not exist.");
+
         cartItem.Quantity = quantityDto.Quantity;
 
         var result = await _commerceDbContext.SaveChangesAsync();
@@ -119,9 +113,24 @@ public class CartService : ICartService
             .Where(ci => ci.Id == cartItemId)
             .FirstOrDefaultAsync();
 
+        if (cartItem is null)
+            throw new CartItemDoesNotExistException("Cart item does not exist.");
+
         var result = _commerceDbContext.Remove(cartItem);
         await _commerceDbContext.SaveChangesAsync();
 
         return true;
+    }
+
+    private Cart CreateUserCart(string applicationUserId)
+    {
+        var userCart = new Cart
+        {
+            ApplicationUserId = applicationUserId,
+            Items = new List<CartItem>()
+        };
+
+        _commerceDbContext.Carts.Add(userCart);
+        return userCart;
     }
 }

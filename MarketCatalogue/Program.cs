@@ -8,6 +8,7 @@ using MarketCatalogue.Authentication.Infrastructure.Data;
 using AutoMapper;
 using MarketCatalogue.Presentation;
 using MarketCatalogue.Presentation.Automapper;
+using MarketCatalogue.Presentation.Middlewares;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -32,6 +33,7 @@ var mapperConfig = new MapperConfiguration(mc =>
 IMapper mapper = mapperConfig.CreateMapper();
 builder.Services.AddSingleton(mapper);
 builder.Services.AddControllersWithViews();
+builder.Services.AddMemoryCache();
 var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())
@@ -87,7 +89,7 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
-
+app.UseMiddleware<ExceptionHandlingMiddleware>();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllerRoute(
