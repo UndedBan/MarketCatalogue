@@ -1,4 +1,6 @@
-﻿namespace MarketCatalogue.Presentation.Areas.Shops.Models.ViewModels;
+﻿using MarketCatalogue.Commerce.Domain.Enumerations;
+
+namespace MarketCatalogue.Presentation.Areas.Shops.Models.ViewModels;
 
 public class ProductViewModel
 {
@@ -6,5 +8,5 @@ public class ProductViewModel
     public string Name { get; set; } = null!;
     public int Quantity { get; set; }
     public decimal Price { get; set; }
-    public string Category { get; set; } = null!;
+    public ProductCategory Category { get; set; }
 }

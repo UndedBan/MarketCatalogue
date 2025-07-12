@@ -5,6 +5,7 @@ using MarketCatalogue.Commerce.Domain.Dtos.Product;
 using MarketCatalogue.Commerce.Domain.Dtos.Shared;
 using MarketCatalogue.Commerce.Domain.Dtos.Shop;
 using MarketCatalogue.Commerce.Domain.Entities;
+using MarketCatalogue.Commerce.Domain.Enumerations;
 using MarketCatalogue.Commerce.Domain.Interfaces;
 using MarketCatalogue.Commerce.Domain.ValueObjects;
 using MarketCatalogue.Commerce.Infrastructure.Data;
@@ -35,7 +36,11 @@ public class ShopsService : IShopsService
         _mapper = mapper;
     }
 
-    public async Task<ShopWithProductsDto?> GetShopWithProductsById(int shopId, PaginationDto paginationDto)
+    public async Task<ShopWithProductsDto?> GetShopWithProductsById(
+    int shopId,
+    PaginationDto paginationDto,
+    string? searchName = null,
+    string? searchCategory = null)
     {
         var shop = await _commerceDbContext.Shops
             .Include(s => s.Address)
@@ -47,6 +52,21 @@ public class ShopsService : IShopsService
 
         var productsQuery = _commerceDbContext.Products
             .Where(p => p.ShopId == shopId);
+
+        if (!string.IsNullOrEmpty(searchName))
+        {
+            var loweredName = searchName.ToLower();
+            productsQuery = productsQuery.Where(p => p.Name.ToLower().Contains(loweredName));
+        }
+
+        if (!string.IsNullOrEmpty(searchCategory))
+        {
+            if (Enum.TryParse<ProductCategory>(searchCategory, ignoreCase: true, out var categoryEnum))
+            {
+                productsQuery = productsQuery.Where(p => p.Category == categoryEnum);
+            }
+        }
+
 
         var totalCount = await productsQuery.CountAsync();
 
@@ -72,6 +92,7 @@ public class ShopsService : IShopsService
 
         return dto;
     }
+
 
     public async Task<PaginatedResultDto<RepresentativeShopDto>> GetAllShopsByRepresentativeId(
     string representativeId, PaginationDto paginationDto)
