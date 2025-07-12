@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using MarketCatalogue.Commerce.Application.Exceptions.Product;
 using MarketCatalogue.Commerce.Domain.Dtos.Product;
 using MarketCatalogue.Commerce.Domain.Interfaces;
 using MarketCatalogue.Presentation.Areas.Products.Models;
@@ -14,10 +15,12 @@ public class ProductsController : Controller
 {
     private readonly IMapper _mapper;
     private readonly IProductsService _productsService;
-    public ProductsController(IMapper mapper, IProductsService productsService)
+    private readonly ILogger<ProductsController> _logger;
+    public ProductsController(IMapper mapper, IProductsService productsService, ILogger<ProductsController> logger)
     {
         _mapper = mapper;
         _productsService = productsService;
+        _logger = logger;
     }
 
     [HttpGet]
@@ -38,16 +41,41 @@ public class ProductsController : Controller
     [HttpGet]
     public async Task<IActionResult> EditProduct(int productId)
     {
-        var productDto = await _productsService.GetProductById(productId);
-        var productViewModel = _mapper.Map<ProductDetailsViewModel>(productDto);
-        return View(productViewModel);
+        try
+        {
+            var productDto = await _productsService.GetProductById(productId);
+            var productViewModel = _mapper.Map<ProductDetailsViewModel>(productDto);
+            return View(productViewModel);
+        }
+        catch(ProductNotFoundException ex)
+        {
+            _logger.LogWarning("Product with id {ProductId} was not found. {Message}", productId, ex.Message);
+            return NotFound(ex);            
+        }
     }
 
     [HttpPost]
     public async Task<IActionResult> EditProduct(EditProductBindingModel model)
     {
-        var editProductDto = _mapper.Map<EditProductDto>(model);
-        var wasEditSuccessful = await _productsService.EditProduct(editProductDto);
-        return RedirectToAction("EditProduct", new { productId = model.Id });
+        try
+        {
+            var editProductDto = _mapper.Map<EditProductDto>(model);
+            var wasEditSuccessful = await _productsService.EditProduct(editProductDto);
+
+            if (!wasEditSuccessful)
+                throw new ProductEditFailedException($"Editing product with ID {model.Id} failed unexpectedly.");
+
+            return RedirectToAction("EditProduct", new { productId = model.Id });
+        }
+        catch(ProductNotFoundException ex)
+        {
+            _logger.LogWarning("Product with id {ProductId} was not found. {Message}", model.Id, ex.Message);
+            return NotFound(ex);
+        }
+        catch (ProductEditFailedException ex)
+        {
+            _logger.LogError("Failed to edit product with id {ProductId}. {Message}", model.Id, ex.Message);
+            return BadRequest(ex.Message);
+        }
     }
 }

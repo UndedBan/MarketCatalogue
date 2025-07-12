@@ -1,10 +1,13 @@
 ﻿using AutoMapper;
 using AutoMapper.QueryableExtensions;
+using MarketCatalogue.Commerce.Application.Exceptions;
+using MarketCatalogue.Commerce.Application.Exceptions.Product;
 using MarketCatalogue.Commerce.Domain.Dtos.Product;
 using MarketCatalogue.Commerce.Domain.Entities;
 using MarketCatalogue.Commerce.Domain.Interfaces;
 using MarketCatalogue.Commerce.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,10 +20,12 @@ public class ProductsService : IProductsService
 {
     private readonly IMapper _mapper;
     private readonly CommerceDbContext _commerceDbContext;
-    public ProductsService(IMapper mapper, CommerceDbContext commerceDbContext)
+    private readonly IMemoryCache _cache;
+    public ProductsService(IMapper mapper, CommerceDbContext commerceDbContext, IMemoryCache cache)
     {
         _mapper = mapper;
         _commerceDbContext = commerceDbContext;
+        _cache = cache;
     }
 
     public async Task<int> CreateProduct(ProductCreateDto productCreateDto)
@@ -39,7 +44,7 @@ public class ProductsService : IProductsService
             .FirstOrDefaultAsync(p => p.Id == productEditDto.Id);
 
         if (product == null)
-            return false;
+            throw new ProductNotFoundException("Edit product failed. ");
 
         product.Name = productEditDto.Name;
         product.Quantity = productEditDto.Quantity;
@@ -54,11 +59,24 @@ public class ProductsService : IProductsService
 
     public async Task<ProductDetailsDto> GetProductById(int productId)
     {
-        var editProductDto = await _commerceDbContext.Products
+        var cacheKey = $"ProductDetails:{productId}";
+
+        if (_cache.TryGetValue(cacheKey, out ProductDetailsDto? cachedProduct) 
+            && cachedProduct != null)
+        {
+            return cachedProduct;
+        }
+
+        var product = await _commerceDbContext.Products
             .Where(p => p.Id == productId)
             .ProjectTo<ProductDetailsDto>(_mapper.ConfigurationProvider)
             .FirstOrDefaultAsync();
 
-        return editProductDto;
+        if (product == null)
+            throw new ProductNotFoundException("Product not found.");
+
+        _cache.Set(cacheKey, product, TimeSpan.FromMinutes(30));
+
+        return product;
     }
 }
