@@ -1,41 +1,83 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "Welcome to MarketCatalogue";
 }
 
-<!-- Page content -->
-<div class="text-center mb-4">
-    <h1 class="display-4">Welcome to the MarketCatalogue Map</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="container py-5">
+    <header class="text-center mb-5">
+        <h1 class="display-2 fw-bold text-primary mb-3">MarketCatalogue</h1>
+        <p class="fs-5 text-muted mx-auto" style="max-width: 600px;">
+            Discover local shops, manage your market presence, and enjoy smooth shopping — all from one sleek platform.
+        </p>
+    </header>
+
+    <section class="text-center mb-5">
+        @if (User.IsInRole("Market Representative"))
+        {
+            <div class="mb-4">
+                <h2 class="fw-semibold text-secondary mb-3">Market Representative Dashboard</h2>
+                <p class="fs-6 text-muted mx-auto" style="max-width: 500px;">
+                    Create shops, add or edit products, and keep your listings fresh to grow your customer base effortlessly.
+                </p>
+                <a asp-controller="RepresentativeShops" asp-action="Index" class="btn btn-lg btn-primary px-5 mt-3 shadow-sm">
+                    Manage Your Shops
+                </a>
+            </div>
+        }
+        else if (User.IsInRole("Purchaser"))
+        {
+            <div class="mb-4">
+                <h2 class="fw-semibold text-secondary mb-3">Explore Local Shops</h2>
+                <p class="fs-6 text-muted mx-auto" style="max-width: 500px;">
+                    Browse unique products and support your community by buying directly from local sellers.
+                </p>
+                <a asp-controller="PublicShops" asp-action="Index" class="btn btn-lg btn-success px-5 mt-3 shadow-sm">
+                    Browse Shops
+                </a>
+            </div>
+        }
+        else
+        {
+            <div class="mb-4">
+                <h2 class="fw-semibold text-secondary mb-3">Welcome to MarketCatalogue</h2>
+                <p class="fs-6 text-muted mx-auto" style="max-width: 500px;">
+                    Discover a vibrant marketplace full of unique shops and products waiting for you.
+                </p>
+                <a href="@Url.Action("Index", "Shops")" class="btn btn-lg btn-primary px-5 mt-3 shadow-sm">
+                    Explore Shops
+                </a>
+            </div>
+        }
+    </section>
+
+    <section class="row justify-content-center gy-4">
+        <div class="col-md-5 col-lg-4">
+            <div class="card h-100 shadow-sm border-0 rounded-4 hover-shadow" style="transition: box-shadow 0.3s ease;">
+                <div class="card-body d-flex flex-column text-center">
+                    <div class="fs-1 mb-3 text-primary">🛍️</div>
+                    <h4 class="card-title mb-3 fw-bold">Discover Products</h4>
+                    <p class="card-text flex-grow-1 text-muted">
+                        Easily find and filter quality products from local shops to match your tastes and needs.
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-5 col-lg-4">
+            <div class="card h-100 shadow-sm border-0 rounded-4 hover-shadow" style="transition: box-shadow 0.3s ease;">
+                <div class="card-body d-flex flex-column text-center">
+                    <div class="fs-1 mb-3 text-primary">⚙️</div>
+                    <h4 class="card-title mb-3 fw-bold">Shop Management</h4>
+                    <p class="card-text flex-grow-1 text-muted">
+                        Market reps can create shops, add products, and update listings seamlessly from their dashboard.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
 </div>
 
-<!-- Map container -->
-<div id="map" style="height: 600px; width: 100%;"></div>
-
-<link rel="stylesheet" href="~/lib/leaflet/leaflet.css" />
-
-
-@section Scripts {
-    <!-- Leaflet JS -->
-    <script src="~/lib/leaflet/leaflet.js"></script>
-
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            // Initialize map centered on Berlin with zoom level 12
-            const map = L.map('map').setView([52.52, 13.405], 12);
-
-            // Add OpenStreetMap tiles
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-                maxZoom: 19,
-            }).addTo(map);
-
-            // Add a marker at Berlin
-            const marker = L.marker([52.52, 13.405]).addTo(map);
-
-            // Bind a popup to the marker
-            marker.bindPopup("<b>Berlin</b><br>The capital of Germany.").openPopup();
-
-            // Optional: You could add more markers or interactive features here
-        });
-    </script>
-}
+<style>
+    .hover-shadow:hover {
+        box-shadow: 0 0.75rem 1.5rem rgba(0, 123, 255, 0.3);
+        cursor: default;
+    }
+</style>
