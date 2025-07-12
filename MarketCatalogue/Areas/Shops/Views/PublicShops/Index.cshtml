@@ -1,5 +1,5 @@
 ﻿@using MarketCatalogue.Presentation.Areas.Shops.Models.ViewModels
-@model List<ShopSummaryViewModel>
+@model ShopsSummaryViewModel
 
 @{
     ViewData["Title"] = "Shops";
@@ -12,7 +12,7 @@
     </a>
 </div>
 
-@if (Model == null || !Model.Any())
+@if (Model.Shops == null || !Model.Shops.Any())
 {
     <div class="alert alert-info text-center" role="alert">
         <h4 class="alert-heading">No Shops Found!</h4>
@@ -24,7 +24,7 @@
 else
 {
     <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
-        @foreach (var shop in Model)
+        @foreach (var shop in Model.Shops)
         {
             <div class="col">
                 <div class="card h-100 shadow-sm border-primary">
@@ -96,4 +96,6 @@ else
             </div>
         }
     </div>
+
+    <partial name="_Pagination" model="Model.Pagination" />
 }

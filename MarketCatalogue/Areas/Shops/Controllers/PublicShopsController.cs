@@ -3,6 +3,7 @@ using MarketCatalogue.Commerce.Domain.Dtos.Shop;
 using MarketCatalogue.Commerce.Domain.Interfaces;
 using MarketCatalogue.DependencyInjection.Helpers;
 using MarketCatalogue.Presentation.Areas.Shops.Models.ViewModels;
+using MarketCatalogue.Presentation.Models;
 using MarketCatalogue.Shared.Domain.Dtos;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -30,7 +31,18 @@ public class PublicShopsController : Controller
         );
 
         var paginatedShops = await _shopsService.GetAllShops(pagination);
-        var viewModel = _mapper.Map<List<ShopSummaryViewModel>>(paginatedShops);
+
+        var viewModel = new ShopsSummaryViewModel
+        {
+            Shops = _mapper.Map<List<ShopSummaryViewModel>>(paginatedShops.Items),
+            Pagination = new PaginationViewModel
+            {
+                CurrentPage = paginatedShops.CurrentPage,
+                LastPage = paginatedShops.TotalPages,
+                Query = ""
+            }
+        };
+
         return View(viewModel);
     }
     public async Task<IActionResult> ShopPage(int shopId, [FromQuery] int page = 1)
@@ -41,7 +53,16 @@ public class PublicShopsController : Controller
         );
 
         var shopWithPaginatedProducts = await _shopsService.GetShopWithProductsById(shopId, pagination);
-        var viewModel = _mapper.Map<ShopWithProductsViewModel>(shopWithPaginatedProducts);
+        var viewModel = new ShopWithProductsPaginatedViewModel
+        {
+            ShopWithProducts = _mapper.Map<ShopWithProductsViewModel>(shopWithPaginatedProducts),
+            Pagination = new PaginationViewModel
+            {
+                CurrentPage = shopWithPaginatedProducts.Products.CurrentPage,
+                LastPage = shopWithPaginatedProducts.Products.TotalPages,
+                Query = $"shopId={shopId}"
+            }
+        };
         return View(viewModel);
     }
 }
