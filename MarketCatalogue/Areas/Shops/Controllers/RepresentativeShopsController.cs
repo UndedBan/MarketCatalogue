@@ -2,11 +2,13 @@
 using MarketCatalogue.Authentication.Application.Extensions;
 using MarketCatalogue.Authentication.Domain.Entities;
 using MarketCatalogue.Authentication.Domain.Enumerations;
+using MarketCatalogue.Commerce.Application.Exceptions.Shop;
 using MarketCatalogue.Commerce.Domain.Dtos.Shop;
 using MarketCatalogue.Commerce.Domain.Interfaces;
 using MarketCatalogue.DependencyInjection.Helpers;
 using MarketCatalogue.Presentation.Areas.Shops.Models.BindingModels;
 using MarketCatalogue.Presentation.Areas.Shops.Models.ViewModels;
+using MarketCatalogue.Presentation.Exceptions;
 using MarketCatalogue.Presentation.Models;
 using MarketCatalogue.Shared.Domain.Dtos;
 using Microsoft.AspNetCore.Authorization;
@@ -23,42 +25,54 @@ public class RepresentativeShopsController : Controller
 {
     private readonly IShopsService _shopsService;
     private readonly UserManager<ApplicationUser> _userManager;
-    private IMapper _mapper;
+    private readonly IMapper _mapper;
+    private readonly ILogger<RepresentativeShopsController> _logger;
 
     public RepresentativeShopsController(IShopsService shopsService,
         UserManager<ApplicationUser> userManager,
-        IMapper mapper)
+        IMapper mapper,
+        ILogger<RepresentativeShopsController> logger)
     {
         _shopsService = shopsService;
         _userManager = userManager;
         _mapper = mapper;
+        _logger = logger;
     }
 
     public async Task<IActionResult> Index([FromQuery] int page = 1)
     {
-        var pagination = new PaginationDto(
-            currentPage: page,
-            itemsPerPage: ConfigurationHelper.GetValue<int>("Environment:PageSize")
-        );
-
-        var signedInUser = await _userManager.GetUserAsync(User);
-        if (signedInUser is not ApplicationUser)
-            return BadRequest();
-
-        var paginatedShopsDto = await _shopsService.GetAllShopsByRepresentativeId(signedInUser.Id, pagination);
-
-        var viewModel = new RepresentativeShopsViewModel   
+        try
         {
-            Shops = _mapper.Map<List<RepresentativeShopViewModel>>(paginatedShopsDto.Items),
-            Pagination = new PaginationViewModel
-            {
-                CurrentPage = paginatedShopsDto.CurrentPage,
-                LastPage = paginatedShopsDto.TotalPages,
-                Query = ""
-            }
-        };
+            var pagination = new PaginationDto(
+                currentPage: page,
+                itemsPerPage: ConfigurationHelper.GetValue<int>("Environment:PageSize")
+            );
 
-        return View(viewModel);
+            var signedInUser = await _userManager.GetUserAsync(User);
+
+            if (signedInUser is null)
+                throw new UserWasNotFoundException("User was not found or not authenticated.");
+
+            var paginatedShopsDto = await _shopsService.GetAllShopsByRepresentativeId(signedInUser.Id, pagination);
+
+            var viewModel = new RepresentativeShopsViewModel
+            {
+                Shops = _mapper.Map<List<RepresentativeShopViewModel>>(paginatedShopsDto.Items),
+                Pagination = new PaginationViewModel
+                {
+                    CurrentPage = paginatedShopsDto.CurrentPage,
+                    LastPage = paginatedShopsDto.TotalPages,
+                    Query = ""
+                }
+            };
+
+            return View(viewModel);
+        }
+        catch (UserWasNotFoundException ex)
+        {
+            _logger.LogError(ex, "Error loading shops for the representative. User was not found.");
+            return BadRequest("Error");
+        }
     }
 
 
@@ -78,15 +92,32 @@ public class RepresentativeShopsController : Controller
             var viewModel = _mapper.Map<ShopCreateViewModel>(model);
             return View(viewModel);
         }
+
         var dto = _mapper.Map<ShopCreateDto>(model);
-        dto.MarketRepresentativeId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        var wasCreationSuccessful = await _shopsService.CreateShop(dto);
-        if (wasCreationSuccessful)
-            return RedirectToAction("Index");
-        else
+
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (userId is null)
+            throw new UserWasNotFoundException("User was not found or not authenticated.");
+
+        dto.MarketRepresentativeId = userId;
+
+        try
         {
-            var viewModel = _mapper.Map<ShopCreateDto>(model);
+            await _shopsService.CreateShop(dto);
+            return RedirectToAction("Index");
+        }
+        catch (ShopCreationFailedException ex)
+        {
+            _logger.LogError(ex, "Failed to create shop for user {UserId}", userId);
             ModelState.AddModelError("", "Failed to create shop. Please try again.");
+            var viewModel = _mapper.Map<ShopCreateViewModel>(model);
+            return View(viewModel);
+        }
+        catch (UserWasNotFoundException ex)
+        {
+            _logger.LogWarning(ex, "User not found during shop creation.");
+            ModelState.AddModelError("", "You must be logged in to create a shop.");
+            var viewModel = _mapper.Map<ShopCreateViewModel>(model);
             return View(viewModel);
         }
     }
@@ -94,22 +125,72 @@ public class RepresentativeShopsController : Controller
     [HttpGet]
     public async Task<IActionResult> EditShop(int shopId)
     {
-        var shop = await _shopsService.GetShopDetailsById(shopId);
-        var editShopViewModel = _mapper.Map<EditShopViewModel>(shop);
-        return View(editShopViewModel);
+        try
+        {
+            var shop = await _shopsService.GetShopDetailsById(shopId);
+            var editShopViewModel = _mapper.Map<EditShopViewModel>(shop);
+            return View(editShopViewModel);
+        }
+        catch (MarketRepresentativeNotFoundException ex)
+        {
+            _logger.LogWarning("Market representative for shop ID {ShopId} not found. {Message}", shopId, ex.Message);
+            return NotFound(ex.Message);
+        }
+        catch (ShopNotFoundException ex)
+        {
+            _logger.LogWarning("Shop with ID {ShopId} not found. {Message}", shopId, ex.Message);
+            return NotFound(ex.Message);
+        }
     }
+
 
     [HttpPost]
     public async Task<IActionResult> EditShop(EditShopBindingModel model)
     {
-        var shopUpdateDto = _mapper.Map<EditShopDto>(model);
-        var wasUpdateSuccessful = await _shopsService.EditShop(shopUpdateDto);
-        return RedirectToAction("EditShop", new { shopId = model.Id });
+        try
+        {
+            if (!ModelState.IsValid)
+            {
+                _logger.LogWarning("EditShop: Invalid model state for shop ID {ShopId}", model.Id);
+                var viewModel = _mapper.Map<EditShopViewModel>(model);
+                return View(viewModel);
+            }
+
+            var shopUpdateDto = _mapper.Map<EditShopDto>(model);
+            var wasUpdateSuccessful = await _shopsService.EditShop(shopUpdateDto);
+
+            if (!wasUpdateSuccessful)
+            {
+                _logger.LogWarning("EditShop: Update failed for shop ID {ShopId}", model.Id);
+                ModelState.AddModelError(string.Empty, "Update failed. Please try again.");
+                return View(model);
+            }
+
+            return RedirectToAction("EditShop", new { shopId = model.Id });
+        }
+        catch (ShopNotFoundException ex)
+        {
+            _logger.LogWarning("EditShop: Shop with ID {ShopId} not found. {Message}", model.Id, ex.Message);
+            return NotFound(ex.Message);
+        }
     }
 
+
+    [HttpPost]
     public async Task<IActionResult> DeleteShop(int shopId)
     {
-        var wasDeletionSuccessful = await _shopsService.DeleteShopById(shopId);
-        return RedirectToAction("Index");
+        try
+        {
+            var wasDeleted = await _shopsService.DeleteShopById(shopId);
+
+            _logger.LogInformation("Shop with ID {ShopId} deleted successfully.", shopId);
+            return RedirectToAction("Index");
+        }
+        catch (ShopNotFoundException ex)
+        {
+            _logger.LogWarning("Deletion failed: {Message}", ex.Message);
+            return NotFound(ex.Message);
+        }
     }
+
 }
