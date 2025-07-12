@@ -1,5 +1,6 @@
 ﻿using MarketCatalogue.Authentication.Domain.Entities;
 using MarketCatalogue.Authentication.Infrastructure.Data;
+using MarketCatalogue.Commerce.Infrastructure.Data;
 using MarketCatalogue.DependencyInjection.Helpers;
 using MarketCatalogue.Shared.Domain.Configurations;
 using Microsoft.AspNetCore.Identity;
@@ -15,6 +16,10 @@ public static class IServiceCollectionExtensions
         services.AddDbContext<AuthenticationDbContext>(options => options.UseSqlServer(
             config.GetConnectionString("AuthenticationDbContext"),
             b => b.MigrationsAssembly(typeof(AuthenticationDbContext).Assembly.FullName)));
+
+        services.AddDbContext<CommerceDbContext>(options => options.UseSqlServer(
+            config.GetConnectionString("CommerceDbContext"),
+            b => b.MigrationsAssembly(typeof(CommerceDbContext).Assembly.FullName)));
     }
 
     public static void AddIdentity(this IServiceCollection services)

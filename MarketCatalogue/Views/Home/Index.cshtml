@@ -2,7 +2,40 @@
     ViewData["Title"] = "Home Page";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
+<!-- Page content -->
+<div class="text-center mb-4">
+    <h1 class="display-4">Welcome to the MarketCatalogue Map</h1>
     <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
 </div>
+
+<!-- Map container -->
+<div id="map" style="height: 600px; width: 100%;"></div>
+
+<link rel="stylesheet" href="~/lib/leaflet/leaflet.css" />
+
+
+@section Scripts {
+    <!-- Leaflet JS -->
+    <script src="~/lib/leaflet/leaflet.js"></script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            // Initialize map centered on Berlin with zoom level 12
+            const map = L.map('map').setView([52.52, 13.405], 12);
+
+            // Add OpenStreetMap tiles
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+                maxZoom: 19,
+            }).addTo(map);
+
+            // Add a marker at Berlin
+            const marker = L.marker([52.52, 13.405]).addTo(map);
+
+            // Bind a popup to the marker
+            marker.bindPopup("<b>Berlin</b><br>The capital of Germany.").openPopup();
+
+            // Optional: You could add more markers or interactive features here
+        });
+    </script>
+}
