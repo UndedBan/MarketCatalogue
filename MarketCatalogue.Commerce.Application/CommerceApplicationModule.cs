@@ -10,5 +10,6 @@ public class CommerceApplicationModule : IModule
     public void ConfigureDependencyInjection(IServiceCollection services)
     {
         services.AddScoped<IShopsService, ShopsService>();
+        services.AddScoped<IProductsService, ProductsService>();
     }
 }

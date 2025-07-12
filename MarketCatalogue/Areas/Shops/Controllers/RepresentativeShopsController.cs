@@ -7,6 +7,7 @@ using MarketCatalogue.Commerce.Domain.Interfaces;
 using MarketCatalogue.DependencyInjection.Helpers;
 using MarketCatalogue.Presentation.Areas.Shops.Models.BindingModels;
 using MarketCatalogue.Presentation.Areas.Shops.Models.ViewModels;
+using MarketCatalogue.Presentation.Models;
 using MarketCatalogue.Shared.Domain.Dtos;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -41,14 +42,25 @@ public class RepresentativeShopsController : Controller
         );
 
         var signedInUser = await _userManager.GetUserAsync(User);
-
         if (signedInUser is not ApplicationUser)
             return BadRequest();
 
-        var allRepresentativeShops = await _shopsService.GetAllShopsByRepresentativeId(signedInUser.Id, pagination);
-        var viewModel = _mapper.Map<List<RepresentativeShopsViewModel>>(allRepresentativeShops);
+        var paginatedShopsDto = await _shopsService.GetAllShopsByRepresentativeId(signedInUser.Id, pagination);
+
+        var viewModel = new RepresentativeShopsViewModel   
+        {
+            Shops = _mapper.Map<List<RepresentativeShopViewModel>>(paginatedShopsDto.Items),
+            Pagination = new PaginationViewModel
+            {
+                CurrentPage = paginatedShopsDto.CurrentPage,
+                LastPage = paginatedShopsDto.TotalPages,
+                Query = ""
+            }
+        };
+
         return View(viewModel);
     }
+
 
     [HttpGet]
     public IActionResult CreateShop()

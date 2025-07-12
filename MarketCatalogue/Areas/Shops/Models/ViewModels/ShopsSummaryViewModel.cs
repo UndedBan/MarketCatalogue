@@ -2,8 +2,8 @@
 
 namespace MarketCatalogue.Presentation.Areas.Shops.Models.ViewModels;
 
-public class RepresentativeShopsViewModel
+public class ShopsSummaryViewModel
 {
-    public List<RepresentativeShopViewModel> Shops { get; set; } = new();
+    public List<ShopSummaryViewModel> Shops { get; set; } = new();
     public PaginationViewModel Pagination { get; set; } = new();
 }
