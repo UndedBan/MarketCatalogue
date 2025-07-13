@@ -13,6 +13,40 @@
         : string.Empty;
 }
 
+<style>
+    .pagination .page-item .page-link {
+        color: #00b894;
+        border-color: #00b894;
+    }
+
+        .pagination .page-item .page-link:hover,
+        .pagination .page-item .page-link:focus {
+            background-color: #e0f7f1;
+            border-color: #019974;
+            color: #00b894;
+        }
+
+    .pagination .page-item.active .page-link {
+        background-color: #00b894;
+        border-color: #00b894;
+        color: white; 
+    }
+
+        .pagination .page-item.active .page-link:hover,
+        .pagination .pagination .page-item.active .page-link:focus {
+            background-color: #019974;
+            border-color: #019974;
+            color: white;
+        }
+
+    .pagination .page-item.disabled .page-link {
+        color: #6c757d;
+        pointer-events: none;
+        background-color: #e9ecef;
+        border-color: #dee2e6;
+    }
+</style>
+
 @if (lastPage > 1)
 {
     <nav aria-label="Page navigation">

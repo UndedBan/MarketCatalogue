@@ -4,61 +4,100 @@
     ViewData["Title"] = "Create Shop";
 }
 
-<h2 class="mb-4">Create Shop</h2>
+<div class="container py-5" style="background-color: #f1f2f6; min-height: 100vh;">
+    <div class="row justify-content-center">
+        <div class="col-md-10 col-lg-8">
+            <div class="card shadow border-0">
+                <div class="card-body">
+                    <h2 class="card-title mb-4 text-center text-primary">Create Shop</h2>
 
-<form asp-action="CreateShop" method="post" class="needs-validation" novalidate>
-    <div class="mb-3">
-        <label asp-for="ShopName" class="form-label"></label>
-        <input asp-for="ShopName" class="form-control" />
-        <span asp-validation-for="ShopName" class="text-danger"></span>
+                    <form asp-action="CreateShop" method="post" class="needs-validation" novalidate>
+                        <div class="mb-3">
+                            <label asp-for="ShopName" class="form-label fw-semibold text-dark"></label>
+                            <input asp-for="ShopName" class="form-control form-control-lg" placeholder="Shop name" />
+                            <span asp-validation-for="ShopName" class="text-danger small"></span>
+                        </div>
+
+                        <h4 class="mt-4 text-primary">Address</h4>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Address.Street" class="form-label fw-semibold text-dark"></label>
+                                <input asp-for="Address.Street" class="form-control form-control-lg" placeholder="Street" />
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Address.City" class="form-label fw-semibold text-dark"></label>
+                                <input asp-for="Address.City" class="form-control form-control-lg" placeholder="City" />
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Address.State" class="form-label fw-semibold text-dark"></label>
+                                <input asp-for="Address.State" class="form-control form-control-lg" placeholder="State" />
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Address.PostalCode" class="form-label fw-semibold text-dark"></label>
+                                <input asp-for="Address.PostalCode" class="form-control form-control-lg" placeholder="Postal Code" />
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Address.Country" class="form-label fw-semibold text-dark"></label>
+                                <input asp-for="Address.Country" class="form-control form-control-lg" placeholder="Country" />
+                            </div>
+                        </div>
+
+                        <h4 class="mt-4 text-primary">Weekly Schedule</h4>
+                        @for (int i = 0; i < Model.Schedule?.Count; i++)
+                        {
+                            <div class="row mb-3 align-items-center">
+                                <div class="col-md-2 fw-semibold">
+                                    @Model.Schedule[i].Day
+                                    <input type="hidden" asp-for="Schedule[i].Day" />
+                                </div>
+                                <div class="col-md-5">
+                                    <input asp-for="Schedule[i].OpenTime" class="form-control form-control-lg" type="time" />
+                                </div>
+                                <div class="col-md-5">
+                                    <input asp-for="Schedule[i].CloseTime" class="form-control form-control-lg" type="time" />
+                                </div>
+                            </div>
+                        }
+
+                        <div class="d-flex justify-content-between align-items-center mt-4">
+                            <button type="submit" class="btn btn-lg px-4 text-white" style="background-color: #00b894;">Create Shop</button>
+                            <a asp-action="Index" class="btn btn-outline-secondary btn-lg">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
     </div>
-
-    <h4 class="mt-4">Address</h4>
-    <div class="row">
-        <div class="col-md-6 mb-3">
-            <label asp-for="Address.Street" class="form-label"></label>
-            <input asp-for="Address.Street" class="form-control" />
-        </div>
-        <div class="col-md-6 mb-3">
-            <label asp-for="Address.City" class="form-label"></label>
-            <input asp-for="Address.City" class="form-control" />
-        </div>
-        <div class="col-md-6 mb-3">
-            <label asp-for="Address.State" class="form-label"></label>
-            <input asp-for="Address.State" class="form-control" />
-        </div>
-        <div class="col-md-6 mb-3">
-            <label asp-for="Address.PostalCode" class="form-label"></label>
-            <input asp-for="Address.PostalCode" class="form-control" />
-        </div>
-        <div class="col-md-6 mb-3">
-            <label asp-for="Address.Country" class="form-label"></label>
-            <input asp-for="Address.Country" class="form-control" />
-        </div>
-    </div>
-
-    <h4 class="mt-4">Weekly Schedule</h4>
-    @for (int i = 0; i < Model.Schedule?.Count; i++)
-    {
-        <div class="row mb-2">
-            <div class="col-md-2">
-                <strong>@Model.Schedule[i].Day</strong>
-                <input type="hidden" asp-for="Schedule[i].Day" />
-            </div>
-            <div class="col-md-5">
-                <input asp-for="Schedule[i].OpenTime" class="form-control" type="time" />
-            </div>
-            <div class="col-md-5">
-                <input asp-for="Schedule[i].CloseTime" class="form-control" type="time" />
-            </div>
-        </div>
-    }
-
-
-    <button type="submit" class="btn btn-success mt-3">Create Shop</button>
-    <a asp-action="Index" class="btn btn-secondary mt-3 ms-2">Cancel</a>
-</form>
+</div>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
 }
+
+<style>
+    .form-control:focus,
+    .form-select:focus {
+        box-shadow: 0 0 0 0.2rem rgba(0, 184, 148, 0.25);
+        border-color: #00b894;
+    }
+
+    .card {
+        border-radius: 1rem;
+    }
+
+    .btn-lg {
+        border-radius: 0.5rem;
+    }
+
+    .btn:hover {
+        opacity: 0.9;
+    }
+
+    .text-primary {
+        color: #00b894 !important;
+    }
+
+    body {
+        background-color: #f1f2f6;
+    }
+</style>
