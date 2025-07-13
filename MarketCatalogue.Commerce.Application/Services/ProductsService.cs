@@ -59,14 +59,6 @@ public class ProductsService : IProductsService
 
     public async Task<ProductDetailsDto> GetProductById(int productId)
     {
-        var cacheKey = $"ProductDetails:{productId}";
-
-        if (_cache.TryGetValue(cacheKey, out ProductDetailsDto? cachedProduct) 
-            && cachedProduct != null)
-        {
-            return cachedProduct;
-        }
-
         var product = await _commerceDbContext.Products
             .Where(p => p.Id == productId)
             .ProjectTo<ProductDetailsDto>(_mapper.ConfigurationProvider)
@@ -74,8 +66,6 @@ public class ProductsService : IProductsService
 
         if (product == null)
             throw new ProductNotFoundException("Product not found.");
-
-        _cache.Set(cacheKey, product, TimeSpan.FromMinutes(30));
 
         return product;
     }

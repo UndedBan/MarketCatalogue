@@ -5,40 +5,82 @@
     ViewData["Title"] = "Edit Product";
 }
 
-<h2 class="mb-4">Edit Product</h2>
+<div class="container py-5" style="background-color: #f1f2f6; min-height: 100vh;">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card shadow border-0">
+                <div class="card-body">
+                    <h2 class="card-title mb-4 text-center text-primary">Edit Product</h2>
 
-<form asp-action="EditProduct" method="post" class="needs-validation" novalidate>
-    <input type="hidden" asp-for="Id" />
-    <input type="hidden" asp-for="ShopId" />
+                    <form asp-action="EditProduct" method="post" class="needs-validation" novalidate>
+                        <input type="hidden" asp-for="Id" />
+                        <input type="hidden" asp-for="ShopId" />
 
-    <div class="mb-3">
-        <label asp-for="Name" class="form-label"></label>
-        <input asp-for="Name" class="form-control" />
-        <span asp-validation-for="Name" class="text-danger"></span>
+                        <div class="mb-3">
+                            <label asp-for="Name" class="form-label fw-semibold text-dark"></label>
+                            <input asp-for="Name" class="form-control form-control-lg" placeholder="Product name" />
+                            <span asp-validation-for="Name" class="text-danger small"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Quantity" class="form-label fw-semibold text-dark"></label>
+                            <input asp-for="Quantity" class="form-control form-control-lg" type="number" placeholder="e.g. 50" />
+                            <span asp-validation-for="Quantity" class="text-danger small"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Price" class="form-label fw-semibold text-dark"></label>
+                            <input asp-for="Price" class="form-control form-control-lg" type="number" step="0.01" placeholder="e.g. 9.99" />
+                            <span asp-validation-for="Price" class="text-danger small"></span>
+                        </div>
+
+                        <div class="mb-4">
+                            <label asp-for="Category" class="form-label fw-semibold text-dark"></label>
+                            <select asp-for="Category" asp-items="Html.GetEnumSelectList<ProductCategory>()" class="form-select form-select-lg">
+                                <option value="">-- Select Category --</option>
+                            </select>
+                            <span asp-validation-for="Category" class="text-danger small"></span>
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-center">
+                            <button type="submit" class="btn btn-lg px-4 text-white" style="background-color: #00b894;">Save Changes</button>
+                            <a asp-action="ShopPage" asp-controller="PublicShops" asp-area="PublicShops" asp-route-shopId="@Model.ShopId" class="btn btn-outline-secondary btn-lg">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
     </div>
-
-    <div class="mb-3">
-        <label asp-for="Quantity" class="form-label"></label>
-        <input asp-for="Quantity" class="form-control" type="number" />
-        <span asp-validation-for="Quantity" class="text-danger"></span>
-    </div>
-
-    <div class="mb-3">
-        <label asp-for="Price" class="form-label"></label>
-        <input asp-for="Price" class="form-control" type="number" step="0.01" />
-        <span asp-validation-for="Price" class="text-danger"></span>
-    </div>
-
-    <div class="mb-3">
-        <label asp-for="Category" class="form-label"></label>
-        <select asp-for="Category" asp-items="Html.GetEnumSelectList<ProductCategory>()" class="form-select"></select>
-        <span asp-validation-for="Category" class="text-danger"></span>
-    </div>
-
-    <button type="submit" class="btn btn-primary">Save Changes</button>
-    <a asp-action="ShopPage" asp-controller="PublicShops" asp-area="PublicShops" asp-route-shopId="@Model.ShopId" class="btn btn-secondary ms-2">Cancel</a>
-</form>
+</div>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
 }
+
+<style>
+    .form-control:focus,
+    .form-select:focus {
+        box-shadow: 0 0 0 0.2rem rgba(0, 184, 148, 0.25);
+        border-color: #00b894;
+    }
+
+    .card {
+        border-radius: 1rem;
+    }
+
+    .btn-lg {
+        border-radius: 0.5rem;
+    }
+
+    .btn:hover {
+        opacity: 0.9;
+    }
+
+    .text-primary {
+        color: #00b894 !important;
+    }
+
+    body {
+        background-color: #f1f2f6;
+    }
+</style>
