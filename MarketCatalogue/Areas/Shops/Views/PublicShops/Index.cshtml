@@ -5,69 +5,110 @@
     ViewData["Title"] = "Shops";
 }
 
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 class="mb-0">Shops</h2>
-    <a class="btn btn-primary" asp-action="CreateShop" asp-controller="RepresentativeShops">
-        <i class="bi bi-plus-circle-fill me-2"></i> Add New Shop
+<style>
+    body {
+        background-color: #f1f2f6;
+    }
+
+    .text-primary {
+        color: #00b894 !important;
+    }
+
+    .btn-primary {
+        background-color: #00b894;
+        border-color: #00b894;
+    }
+
+        .btn-primary:hover,
+        .btn-primary:focus {
+            background-color: #019974;
+            border-color: #019974;
+            opacity: 0.9;
+        }
+
+    .card {
+        border-radius: 1rem;
+    }
+
+    .btn-lg {
+        border-radius: 0.5rem;
+    }
+
+    .shadow-lg {
+        box-shadow: 0 0.5rem 1rem rgb(0 0 0 / 0.15) !important;
+    }
+
+    .opacity-75 {
+        opacity: 0.75 !important;
+    }
+</style>
+
+<div class="d-flex justify-content-between align-items-center mb-5">
+    <h1 class="display-4 fw-bold text-primary mb-0">Your Shops</h1>
+    <a class="btn btn-primary btn-lg rounded-pill shadow d-inline-flex align-items-center gap-2 px-4" asp-action="CreateShop" asp-controller="RepresentativeShops">
+        <i class="bi bi-plus-circle-fill fs-5"></i> Add New Shop
     </a>
 </div>
 
 @if (Model.Shops == null || !Model.Shops.Any())
 {
-    <div class="alert alert-info text-center" role="alert">
-        <h4 class="alert-heading">No Shops Found!</h4>
-        <p>There are no shops available at the moment.</p>
-        <hr />
-        <p class="mb-0">Click "Add New Shop" to create one.</p>
+    <div class="alert alert-info text-center py-5 rounded-4 shadow-sm" role="alert" style="background-color:#e0f7f1; border-color:#00b894;">
+        <h3 class="alert-heading text-primary fw-bold mb-3">No Shops Found!</h3>
+        <p class="lead mb-4">It looks like you haven't created any shops yet. Start building your presence!</p>
+        <hr class="my-4">
+        <p class="mb-0">Click the "<span class="fw-bold">Add New Shop</span>" button above to get started and showcase your products.</p>
     </div>
 }
 else
 {
-    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4 mb-5">
         @foreach (var shop in Model.Shops)
         {
             <div class="col">
-                <div class="card h-100 shadow-sm border-primary">
-                    <div class="card-body d-flex flex-column">
-                        <h5 class="card-title text-primary fw-bold mb-3">@shop.ShopName</h5>
+                <div class="card h-100 shadow-lg border-0 rounded-4 overflow-hidden">
+                    <div class="card-header" style="background-color: #00b894; color: white; padding: 1rem; text-align:center;">
+                        <h4 class="card-title fw-bold mb-0">@shop.ShopName</h4>
+                    </div>
+                    <div class="card-body d-flex flex-column p-4">
 
-                        @if (shop.Address != null)
+                        @if (shop.Address is not null)
                         {
-                            <div class="mb-3">
-                                <h6 class="text-secondary"><i class="bi bi-geo-alt-fill me-2"></i> Address:</h6>
-                                <address class="mb-0 small text-muted ps-4">
-                                    @if (!string.IsNullOrWhiteSpace(shop.Address.Street))
+                            <div class="mb-4 pb-3 border-bottom">
+                                <h6 class="text-secondary fw-bold mb-2" style="color: #555;">
+                                    <i class="bi bi-geo-alt-fill me-2" style="color:#00b894;opacity:0.75;"></i> Address
+                                </h6>
+                                <address class="mb-0 small text-muted ps-4" style="line-height: 1.4;">
+                                    @if (!string.IsNullOrEmpty(shop.Address.Street))
                                     {
-                                        @shop.Address.Street
-
-                                        <br />
+                                        @shop.Address.Street <br />
                                     }
-                                    @if (!string.IsNullOrWhiteSpace(shop.Address.City))
+                                    @if (!string.IsNullOrEmpty(shop.Address.City))
                                     {
                                         @shop.Address.City
                                     }
-                                    @if (!string.IsNullOrWhiteSpace(shop.Address.State))
+                                    @if (!string.IsNullOrEmpty(shop.Address.State))
                                     {
-                                        @(", " + shop.Address.State)
+                                        @shop.Address.State
                                     }
-                                    @if (!string.IsNullOrWhiteSpace(shop.Address.PostalCode))
+                                    @if (!string.IsNullOrEmpty(shop.Address.PostalCode))
                                     {
-                                        @(" " + shop.Address.PostalCode)
+                                        <text> @shop.Address.PostalCode</text>
                                     }
-                                    @if (!string.IsNullOrWhiteSpace(shop.Address.Country))
+                                    @if (!string.IsNullOrEmpty(shop.Address.Country))
                                     {
                                         <br />
-
                                         @shop.Address.Country
                                     }
                                 </address>
                             </div>
                         }
 
-                        @if (shop.Schedule != null && shop.Schedule.Any())
+                        @if (shop.Schedule is not null && shop.Schedule.Any())
                         {
-                            <div class="mb-2">
-                                <h6 class="text-secondary"><i class="bi bi-calendar-week-fill me-2"></i> Schedule:</h6>
+                            <div class="mb-4 pb-3 border-bottom">
+                                <h6 class="text-secondary fw-bold mb-2" style="color: #555;">
+                                    <i class="bi bi-calendar-week-fill me-2" style="color:#00b894;opacity:0.75;"></i> Schedule
+                                </h6>
                                 <ul class="list-unstyled mb-0 small text-muted ps-4">
                                     @foreach (var scheduleEntry in shop.Schedule.OrderBy(s => (int)s.Day))
                                     {
@@ -75,20 +116,29 @@ else
                                             <strong>@scheduleEntry.Day:</strong>
                                             @if (scheduleEntry.OpenTime == TimeSpan.Zero && scheduleEntry.CloseTime == TimeSpan.Zero)
                                             {
-                                                <span class="text-danger">Closed</span>
+                                                <span class="text-danger"> Closed</span>
                                             }
                                             else
                                             {
-                                                <span>@($"{scheduleEntry.OpenTime:hh\\:mm} - {scheduleEntry.CloseTime:hh\\:mm}")</span>
+                                                <span> @scheduleEntry.OpenTime - @scheduleEntry.CloseTime</span>
                                             }
                                         </li>
                                     }
                                 </ul>
                             </div>
                         }
+                        else
+                        {
+                            <div class="mb-4 pb-3 border-bottom">
+                                <h6 class="text-secondary fw-bold mb-2" style="color: #555;">
+                                    <i class="bi bi-calendar-week-fill me-2" style="color:#00b894;opacity:0.75;"></i> Schedule
+                                </h6>
+                                <p class="mb-0 ps-4 text-warning">No schedule information available.</p>
+                            </div>
+                        }
                     </div>
                     <div class="card-footer bg-transparent border-top-0 text-end">
-                        <a asp-action="ShopPage" asp-route-shopId="@shop.Id" class="btn btn-outline-primary btn-sm">
+                        <a asp-action="ShopPage" asp-route-shopId="@shop.Id" class="btn btn-outline-primary btn-sm" style="border-color: #00b894; color: #00b894;">
                             <i class="bi bi-box-arrow-in-right me-2"></i> Select
                         </a>
                     </div>

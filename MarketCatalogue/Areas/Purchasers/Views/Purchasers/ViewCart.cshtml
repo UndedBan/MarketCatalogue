@@ -4,63 +4,151 @@
     ViewData["Title"] = "Your Cart";
 }
 
-<h2>Your Cart</h2>
+<style>
+    .text-primary-green {
+        color: #00b894 !important;
+    }
 
-@if (Model.Items != null && Model.Items.Any())
-{
-    <table class="table table-striped">
-        <thead>
-            <tr>
-                <th>Product</th>
-                <th>Unit Price</th>
-                <th>Quantity</th>
-                <th>Available Stock</th> <!-- renamed for clarity -->
-                <th>Total</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var item in Model.Items)
-            {
+    .btn-primary-green {
+        background-color: #00b894;
+        border-color: #00b894;
+        color: white;
+    }
+
+        .btn-primary-green:hover,
+        .btn-primary-green:focus {
+            background-color: #019974;
+            border-color: #019974;
+            color: white;
+        }
+
+    .btn-outline-primary-green {
+        color: #00b894;
+        border-color: #00b894;
+    }
+
+        .btn-outline-primary-green:hover,
+        .btn-outline-primary-green:focus {
+            background-color: #00b894;
+            border-color: #019974;
+            color: white;
+        }
+
+    table.table {
+        border-radius: 0.75rem;
+        overflow: hidden;
+        box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.05);
+        margin-top: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+        table.table thead {
+            background-color: #00b894;
+            color: white;
+        }
+
+        table.table tbody tr:hover {
+            background-color: #e0f7f1;
+        }
+
+    .cart-quantity-input {
+        width: 70px;
+        display: inline-block;
+        vertical-align: middle;
+        border-radius: 0.5rem;
+        border: 1px solid #ced4da;
+    }
+
+        .cart-quantity-input:focus {
+            border-color: #00b894;
+            box-shadow: 0 0 0 0.25rem rgba(0, 184, 148, 0.25);
+        }
+
+    table.table tfoot tr {
+        background-color: #f9fdfb;
+        font-size: 1.1rem;
+    }
+
+    table.table tfoot td {
+        padding-top: 1rem;
+        padding-bottom: 1rem;
+    }
+
+    .alert-info {
+        background-color: #e0f7f1;
+        border-color: #00b894;
+        color: #00796b;
+        border-radius: 0.75rem;
+        padding: 1.5rem;
+        text-align: center;
+        font-size: 1.1rem;
+    }
+</style>
+
+<div class="container mt-4">
+    <h2 class="text-primary-green fw-bold mb-4">Your Cart</h2>
+
+    @if (Model.Items != null && Model.Items.Any())
+    {
+        <table class="table table-striped align-middle">
+            <thead>
                 <tr>
-                    <td>@item.ProductName</td>
-                    <td>@item.UnitPrice.ToString("C")</td>
+                    <th>Product</th>
+                    <th>Unit Price</th>
+                    <th>Quantity</th>
+                    <th>Available Stock</th>
+                    <th>Total</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model.Items)
+                {
+                    <tr>
+                        <td>@item.ProductName</td>
+                        <td>@item.UnitPrice.ToString("C")</td>
+                        <td>
+                            <form asp-action="UpdateQuantity" method="post" class="d-flex align-items-center gap-2">
+                                <input type="hidden" name="CartItemId" value="@item.Id" />
+                                <input type="number"
+                                       name="Quantity"
+                                       value="@item.Quantity"
+                                       min="1"
+                                       max="@item.AvailableStock"
+                                       class="form-control form-control-sm cart-quantity-input" />
+                                <button type="submit" class="btn btn-outline-primary-green btn-sm">Update</button>
+                            </form>
+                        </td>
+                        <td>@item.AvailableStock</td>
+                        <td>@item.Price.ToString("C")</td>
+                        <td>
+                            <form asp-action="DeleteCartItem" method="post" class="d-inline">
+                                <input type="hidden" name="CartItemId" value="@item.Id" />
+                                <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td colspan="4" class="text-end fw-bold">Total:</td>
+                    <td class="fw-bold">@Model.TotalPrice.ToString("C")</td>
                     <td>
-                        <form asp-action="UpdateQuantity" method="post" class="d-inline">
-                            <input type="hidden" name="CartItemId" value="@item.Id" />
-                            <input type="number" name="Quantity" value="@item.Quantity" min="1" max="@item.AvailableStock" />
-                            <button type="submit" class="btn btn-primary btn-sm">Update</button>
-                        </form>
-                    </td>
-                    <td>@item.AvailableStock</td>
-                    <td>@(item.Price.ToString("C"))</td>
-                    <td>
-                        <form asp-action="DeleteCartItem" method="post" class="d-inline">
-                            <input type="hidden" name="CartItemId" value="@item.Id" />
-                            <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                        <form asp-action="PurchaseCartItems" method="post" class="d-inline">
+                            <button type="submit" class="btn btn-primary-green">Purchase</button>
                         </form>
                     </td>
                 </tr>
-            }
-        </tbody>
-        <tfoot>
-            <tr>
-                <td colspan="4" class="text-end fw-bold">Total:</td>
-                <td class="fw-bold">@Model.TotalPrice.ToString("C")</td>
-                <td>
-                    <form asp-action="PurchaseCartItems" method="post" class="d-inline">
-                        <button type="submit" class="btn btn-primary">Purchase</button>
-                    </form>
-                </td>
-            </tr>
-        </tfoot>
-    </table>
+            </tfoot>
+        </table>
 
-    @await Html.PartialAsync("_Pagination", Model.Pagination)
-}
-else
-{
-    <div class="alert alert-info">
-        Your cart is empty.
-    </div>
-}
+        @await Html.PartialAsync("_Pagination", Model.Pagination)
+    }
+    else
+    {
+        <div class="alert alert-info">
+            Your cart is empty.
+        </div>
+    }
+</div>

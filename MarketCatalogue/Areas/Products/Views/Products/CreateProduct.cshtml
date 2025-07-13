@@ -43,7 +43,7 @@
 
                         <div class="d-flex justify-content-between align-items-center">
                             <button type="submit" class="btn btn-lg px-4 text-white" style="background-color: #00b894;">Create Product</button>
-                            <a asp-action="ShopPage" asp-controller="Shops" asp-route-shopId="@Model.ShopId" class="btn btn-outline-secondary btn-lg">Cancel</a>
+                            <a asp-area="Shops" asp-action="ShopPage" asp-controller="PublicShops" asp-route-shopId="@Model.ShopId" class="btn btn-outline-secondary btn-lg">Cancel</a>
                         </div>
                     </form>
                 </div>
