@@ -25,6 +25,20 @@ public class SMTPCommunicatorService : ISMTPCommunicatorService
         return await _smtpClientService.SendAsync(subject, body, [email]);
     }
 
+    public async Task<bool> SendPurchaseConfirmationEmail(string subject, string email, string message)
+    {
+        var body = await RenderTemplate("PurchaseConfirmationEmail.html");
+        body = body.Replace("!MESSAGE!", message);
+        return await _smtpClientService.SendAsync(subject, body, [email]);
+    }
+
+    public async Task<bool> SendPurchaseCancellationEmail(string subject, string email, string message)
+    {
+        var body = await RenderTemplate("PurchaseCancellationEmail.html");
+        body = body.Replace("!MESSAGE!", message);
+        return await _smtpClientService.SendAsync(subject, body, [email]);
+    }
+
     private static async Task<string> RenderTemplate(string filename)
     {
         try

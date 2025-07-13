@@ -135,7 +135,7 @@
                     <td colspan="4" class="text-end fw-bold">Total:</td>
                     <td class="fw-bold">@Model.TotalPrice.ToString("C")</td>
                     <td>
-                        <form asp-action="PurchaseCartItems" method="post" class="d-inline">
+                        <form asp-action="PlaceOrder" asp-controller="Purchasers" method="post" class="d-inline">
                             <button type="submit" class="btn btn-primary-green">Purchase</button>
                         </form>
                     </td>

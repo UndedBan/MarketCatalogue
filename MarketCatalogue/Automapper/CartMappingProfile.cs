@@ -17,5 +17,13 @@ public class CartMappingProfile : Profile
         .ForMember(dest => dest.UnitPrice, opt => opt.MapFrom(src => src.Product.Price))
         .ForMember(dest => dest.AvailableStock, opt => opt.MapFrom(src => src.Product.Quantity));
         CreateMap<UpdateQuantityBindingModel, UpdateQuantityDto>();
+        CreateMap<CartItem, OrderItem>()
+            .ForMember(dest => dest.Id, opt => opt.Ignore())
+            .ForMember(dest => dest.Product, opt => opt.MapFrom(src => src.Product))
+            .ForMember(dest => dest.ProductId, opt => opt.MapFrom(src => src.ProductId))
+            .ForMember(dest => dest.Quantity, opt => opt.MapFrom(src => src.Quantity))
+            .ForMember(dest => dest.Total, opt => opt.Ignore())
+            .ForMember(dest => dest.OrderId, opt => opt.Ignore())
+            .ForMember(dest => dest.Order, opt => opt.Ignore());
     }
 }

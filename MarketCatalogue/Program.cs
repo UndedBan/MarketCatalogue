@@ -8,7 +8,10 @@ using MarketCatalogue.Authentication.Infrastructure.Data;
 using AutoMapper;
 using MarketCatalogue.Presentation;
 using MarketCatalogue.Presentation.Automapper;
+using Hangfire;
+using Hangfire.MemoryStorage;
 using MarketCatalogue.Presentation.Middlewares;
+using MarketCatalogue.Commerce.Application.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -28,14 +31,25 @@ var mapperConfig = new MapperConfiguration(mc =>
     mc.AddProfile(new ShopMappingProfile());
     mc.AddProfile(new ProductMappingProfile());
     mc.AddProfile(new CartMappingProfile());
+    mc.AddProfile(new OrderMappingProfile());
 });
+builder.Services.AddHangfire(config =>
+    config.UseMemoryStorage()
+);
+builder.Services.AddHangfireServer();
 
 IMapper mapper = mapperConfig.CreateMapper();
 builder.Services.AddSingleton(mapper);
 builder.Services.AddControllersWithViews();
 builder.Services.AddMemoryCache();
 var app = builder.Build();
-
+app.UseHangfireDashboard("/hangfire");
+RecurringJob.AddOrUpdate<OrdersService>(
+        "update-order-status-job",                 // unique job id
+        os => os.UpdateOrderStatusJob(),           // method to call
+        Cron.Never(),                             // schedule (e.g. every hour)
+        TimeZoneInfo.Local                         // optional timezone
+    );
 using (var scope = app.Services.CreateScope())
 {
     var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
