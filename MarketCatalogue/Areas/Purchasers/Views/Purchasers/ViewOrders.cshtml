@@ -1,0 +1,184 @@
+﻿@using MarketCatalogue.Commerce.Domain.Enumerations
+@model MarketCatalogue.Presentation.Areas.Purchasers.Models.UserOrdersViewModel
+
+@{
+    ViewData["Title"] = "Your Orders";
+}
+
+<style>
+    .text-primary-green {
+        color: #00b894 !important;
+    }
+
+    .btn-primary-green {
+        background-color: #00b894;
+        border-color: #00b894;
+        color: white;
+    }
+
+        .btn-primary-green:hover,
+        .btn-primary-green:focus {
+            background-color: #019974;
+            border-color: #019974;
+            color: white;
+        }
+
+    .btn-outline-danger {
+        color: #dc3545;
+        border-color: #dc3545;
+    }
+
+        .btn-outline-danger:hover,
+        .btn-outline-danger:focus {
+            background-color: #dc3545;
+            border-color: #b02a37;
+            color: white;
+        }
+
+    table.table {
+        border-radius: 0.75rem;
+        overflow: hidden;
+        box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.05);
+        margin-top: 1rem;
+        margin-bottom: 2rem;
+    }
+
+        table.table thead {
+            background-color: #00b894;
+            color: white;
+        }
+
+        table.table tbody tr:hover {
+            background-color: #e0f7f1;
+        }
+
+        table.table tfoot tr {
+            background-color: #f9fdfb;
+            font-size: 1.1rem;
+        }
+
+        table.table tfoot td {
+            padding-top: 1rem;
+            padding-bottom: 1rem;
+        }
+
+    .order-header {
+        background-color: #f8f9fa;
+        padding: 1rem 1.5rem;
+        border-radius: 0.75rem;
+        margin-bottom: 0.75rem;
+        box-shadow: 0 0.1rem 0.3rem rgba(0, 0, 0, 0.03);
+    }
+
+        .order-header h4 {
+            margin: 0;
+            color: #222;
+        }
+
+    .order-status {
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.85rem;
+        color: #555;
+        margin-left: 0.5rem;
+    }
+
+    .order-info {
+        font-size: 0.9rem;
+        color: #666;
+    }
+
+    .balance-info {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin-bottom: 1.5rem;
+        color: #00b894;
+    }
+
+    .alert-info {
+        background-color: #e0f7f1;
+        border-color: #00b894;
+        color: #00796b;
+        border-radius: 0.75rem;
+        padding: 1.5rem;
+        text-align: center;
+        font-size: 1.1rem;
+    }
+</style>
+
+<div class="container mt-4">
+    <h2 class="text-primary-green fw-bold mb-4">Your Orders</h2>
+
+    <div class="balance-info">
+        Your current balance: @Model.UserBalance.ToString("C")
+    </div>
+
+    @if (Model.Items == null || !Model.Items.Any())
+    {
+        <div class="alert alert-info">
+            You have no orders yet.
+        </div>
+    }
+    else
+    {
+        @foreach (var order in Model.Items)
+        {
+            var orderId = order.Items.FirstOrDefault()?.OrderId ?? 0;
+            string statusColorClass = order.OrderStatus switch
+            {
+                nameof(OrderStatus.InProgress) => "bg-warning text-dark",
+                nameof(OrderStatus.Cancelled) => "bg-danger",
+                nameof(OrderStatus.Delivered) => "bg-success",
+                _ => "bg-secondary"
+            };
+
+            <div class="order-header d-flex justify-content-between align-items-center mb-2">
+                <div>
+                    <h4>
+                        Order ID: @orderId
+                        <span class="badge @statusColorClass">@order.OrderStatus</span>
+                    </h4>
+                    <div class="order-info">Arrival: @order.ArrivalDate.ToShortDateString()</div>
+                </div>
+
+                @if (order.OrderStatus == OrderStatus.InProgress.ToString())
+                {
+                    <form asp-action="CancelOrder" method="post" asp-route-orderId="@orderId" class="m-0">
+                        <button type="submit" class="btn btn-outline-danger btn-sm"
+                                onclick="return confirm('Are you sure you want to delete this order?');">
+                            Delete
+                        </button>
+                    </form>
+                }
+            </div>
+
+            <table class="table table-striped align-middle">
+                <thead>
+                    <tr>
+                        <th>Product</th>
+                        <th>Quantity</th>
+                        <th>Total Price</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in order.Items)
+                    {
+                        <tr>
+                            <td>@item.Product.Name</td>
+                            <td>@item.Quantity</td>
+                            <td>@item.Total.ToString("C")</td>
+                        </tr>
+                    }
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <th colspan="2" class="text-end">Order Total:</th>
+                        <th>@order.Total.ToString("C")</th>
+                    </tr>
+                </tfoot>
+            </table>
+        }
+
+        @await Html.PartialAsync("_Pagination", Model.Pagination)
+    }
+</div>

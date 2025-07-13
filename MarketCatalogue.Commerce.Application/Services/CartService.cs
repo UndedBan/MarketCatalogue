@@ -122,6 +122,30 @@ public class CartService : ICartService
         return true;
     }
 
+    public async Task<Cart?> GetCartWithItemsByUserId(string userId)
+    {
+        var cart = await _commerceDbContext.Carts
+            .Where(c => c.ApplicationUserId == userId)
+            .Include(c => c.Items)
+                .ThenInclude(c => c.Product)
+            .FirstOrDefaultAsync();
+
+        return cart;
+    }
+
+    public async Task<bool> ClearUserCartById(int cartId)
+    {
+        var cart = await _commerceDbContext.Carts
+            .Where(c => c.Id == cartId)
+                .Include(c => c.Items)
+            .FirstOrDefaultAsync();
+
+        if (cart is null)
+            throw new UserCartNullException("User cart was not found.");
+
+        _commerceDbContext.Carts.Remove(cart);
+        return await _commerceDbContext.SaveChangesAsync() > 0;
+    }
     private Cart CreateUserCart(string applicationUserId)
     {
         var userCart = new Cart

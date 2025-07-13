@@ -13,6 +13,9 @@ using System.Security.Claims;
 using MarketCatalogue.Presentation.Exceptions;
 using MarketCatalogue.Commerce.Application.Exceptions.CartItem;
 using MarketCatalogue.Commerce.Application.Exceptions.Shared;
+using MarketCatalogue.Commerce.Application.Exceptions.Orders;
+using Microsoft.AspNetCore.Identity;
+using MarketCatalogue.Authentication.Domain.Entities;
 
 namespace MarketCatalogue.Presentation.Areas.Purchasers.Controllers;
 
@@ -24,13 +27,16 @@ public class PurchasersController : Controller
 {
     private readonly IMapper _mapper;
     private readonly ICartService _cartService;
+    private readonly IOrdersService _ordersService;
+    private readonly UserManager<ApplicationUser> _userManager;
     private ILogger<PurchasersController> _logger;
-
-    public PurchasersController(IMapper mapper, ICartService cartService, ILogger<PurchasersController> logger)
+    public PurchasersController(IMapper mapper, ICartService cartService, ILogger<PurchasersController> logger, IOrdersService ordersService, UserManager<ApplicationUser> userManager)
     {
         _mapper = mapper;
         _cartService = cartService;
         _logger = logger;
+        _ordersService = ordersService;
+        _userManager = userManager;
     }
 
     [HttpGet]
@@ -75,6 +81,95 @@ public class PurchasersController : Controller
         {
             _logger.LogError("User with id {id} has no cart. {msg}", userId, ex.Message);
             return BadRequest(ex);
+        }
+    }
+
+    public async Task<IActionResult> PlaceOrder()
+    {
+        var user = await _userManager.GetUserAsync(User);
+        try
+        {
+            if (user is null)
+                throw new UserWasNotFoundException("No user id was found");
+
+            var wasOrderPlacementSuccessful = await _ordersService.PlaceOrder(user.Id, user.Email);
+
+            return this.RedirectToPreviousPage();
+        }
+        catch (UserWasNotFoundException ex)
+        {
+            _logger.LogError("No user id was found during Cart retrieval. {msg}", ex.Message);
+            return NotFound(ex);
+        }
+        catch (UserCartNullException ex)
+        {
+            _logger.LogError("User with id {id} has no cart. {msg}", user.Id, ex.Message);
+            return BadRequest(ex);
+        }
+    }
+
+    public async Task<IActionResult> ViewOrders([FromQuery] int page = 1)
+    {
+        var pagination = new PaginationDto(
+            currentPage: page,
+            itemsPerPage: ConfigurationHelper.GetValue<int>("Environment:PageSize")
+        );
+
+        var user = await _userManager.GetUserAsync(User);
+        try
+        {
+            if (user is null)
+                throw new UserWasNotFoundException("No user id was found");
+
+            var paginatedUserOrders = await _ordersService.GetUserOrders(user.Id, pagination);
+
+            var userOrdersViewModel = new UserOrdersViewModel
+            {
+                Items = _mapper.Map<List<UserOrderViewModel>>(paginatedUserOrders.Orders.Items),
+                Pagination = new PaginationViewModel
+                {
+                    CurrentPage = paginatedUserOrders.Orders.CurrentPage,
+                    LastPage = paginatedUserOrders.Orders.TotalPages,
+                    Query = ""
+                },
+                UserBalance = user.Balance
+            };
+
+            return View(userOrdersViewModel);
+        }
+        catch (UserWasNotFoundException ex)
+        {
+            _logger.LogError("No user id was found during Cart retrieval. {msg}", ex.Message);
+            return NotFound(ex);
+        }
+    }
+
+    public async Task<IActionResult> CancelOrder(int orderId)
+    {
+        var user = await _userManager.GetUserAsync(User);
+        try
+        {
+            if (user is null)
+                throw new UserWasNotFoundException("No user id was found");
+            var wasCancellationSuccessful = await _ordersService.CancelOrder(orderId, user.Email);
+            if (!wasCancellationSuccessful)
+                throw new OrderCancellationFailedException("Order cancellation failed.");
+            return this.RedirectToPreviousPage();
+        }
+        catch(OrderCancellationFailedException ex)
+        {
+            _logger.LogError("Order cancellation failed for order with id {id}. {msg}", orderId, ex.Message);
+            return NotFound(ex);
+        }
+        catch (OrderNotFoundException ex)
+        {
+            _logger.LogError("No order found with id {id}. {msg}", orderId, ex.Message);
+            return NotFound(ex);
+        }
+        catch (UserWasNotFoundException ex)
+        {
+            _logger.LogError("No user id was found during Cart retrieval. {msg}", ex.Message);
+            return NotFound(ex);
         }
     }
 

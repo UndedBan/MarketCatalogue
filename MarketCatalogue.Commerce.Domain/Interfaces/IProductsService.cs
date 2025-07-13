@@ -12,4 +12,5 @@ public interface IProductsService
     Task<int> CreateProduct(ProductCreateDto productCreateDto);
     Task<bool> EditProduct(EditProductDto productEditDto);
     Task<ProductDetailsDto> GetProductById(int productId);
+    Task<bool> EditProductsQuantityBatch(List<EditProductDto> productsEditDto);
 }
