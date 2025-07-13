@@ -15,17 +15,22 @@ using MarketCatalogue.Commerce.Application.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
+
 var config = new ConfigurationBuilder()
-                .SetBasePath(Directory.GetCurrentDirectory())
-                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
-                .AddJsonFile("appsettings.ConnectionString.json")
-                .AddEnvironmentVariables()
-                .Build();
+    .SetBasePath(Directory.GetCurrentDirectory())
+    .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+    .AddJsonFile("appsettings.ConnectionString.json", optional: true)
+    .AddEnvironmentVariables()
+    .Build();
+
 
 builder.Services.ConfigureDbContexts(config);
 builder.Services.ConfigureOptions(config);
 builder.Services.ConfigureDependencyInjection();
+
 builder.Services.AddIdentity();
+
+
 var mapperConfig = new MapperConfiguration(mc =>
 {
     mc.AddProfile(new ShopMappingProfile());
@@ -33,23 +38,28 @@ var mapperConfig = new MapperConfiguration(mc =>
     mc.AddProfile(new CartMappingProfile());
     mc.AddProfile(new OrderMappingProfile());
 });
-builder.Services.AddHangfire(config =>
-    config.UseMemoryStorage()
-);
-builder.Services.AddHangfireServer();
 
 IMapper mapper = mapperConfig.CreateMapper();
 builder.Services.AddSingleton(mapper);
+
+
+builder.Services.AddHangfire(cfg => cfg.UseMemoryStorage());
+builder.Services.AddHangfireServer();
+
 builder.Services.AddControllersWithViews();
 builder.Services.AddMemoryCache();
+
 var app = builder.Build();
+
 app.UseHangfireDashboard("/hangfire");
+
 RecurringJob.AddOrUpdate<OrdersService>(
-        "update-order-status-job",                 // unique job id
-        os => os.UpdateOrderStatusJob(),           // method to call
-        Cron.Never(),                             // schedule (e.g. every hour)
-        TimeZoneInfo.Local                         // optional timezone
-    );
+    "update-order-status-job",            
+    os => os.UpdateOrderStatusJob(),      
+    Cron.Never(),                         
+    TimeZoneInfo.Local                    
+);
+
 using (var scope = app.Services.CreateScope())
 {
     var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
@@ -87,7 +97,7 @@ using (var scope = app.Services.CreateScope())
         }
     }
 }
-// Configure the HTTP request pipeline.
+
 if (app.Environment.IsDevelopment())
 {
     app.UseMigrationsEndPoint();
@@ -95,7 +105,6 @@ if (app.Environment.IsDevelopment())
 else
 {
     app.UseExceptionHandler("/Home/Error");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
 
@@ -103,9 +112,12 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
+
 app.UseMiddleware<ExceptionHandlingMiddleware>();
+
 app.UseAuthentication();
 app.UseAuthorization();
+
 app.MapControllerRoute(
     name: "areas",
     pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}");

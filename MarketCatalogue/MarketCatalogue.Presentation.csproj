@@ -35,10 +35,4 @@
     <ProjectReference Include="..\MarketCatalogue.Shared.Domain\MarketCatalogue.Shared.Domain.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Areas\Products\Data\" />
-    <Folder Include="Areas\Purchasers\Data\" />
-    <Folder Include="Areas\Shops\Data\" />
-  </ItemGroup>
-
 </Project>
