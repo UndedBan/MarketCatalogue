@@ -57,6 +57,31 @@ public class ProductsService : IProductsService
         return result > 0;
     }
 
+    public async Task<bool> EditProductsQuantityBatch(List<EditProductDto> productsEditDto)
+    {
+        var productIds = productsEditDto.Select(p => p.Id).ToList();
+        var products = await _commerceDbContext.Products
+            .Where(p => productIds.Contains(p.Id))
+            .ToListAsync();
+
+        if (products.Count == 0)
+            throw new ProductNotFoundException("Edit product failed. No matching products found.");
+
+        foreach (var product in products)
+        {
+            var dto = productsEditDto.FirstOrDefault(pe => pe.Id == product.Id);
+            if (dto == null)
+                continue;
+
+            if (dto.Quantity >= 0)
+                product.Quantity = dto.Quantity;
+        }
+
+        var result = await _commerceDbContext.SaveChangesAsync();
+        return result > 0;
+    }
+
+
     public async Task<ProductDetailsDto> GetProductById(int productId)
     {
         var product = await _commerceDbContext.Products
