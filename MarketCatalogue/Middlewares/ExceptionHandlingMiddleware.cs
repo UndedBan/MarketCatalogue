@@ -6,13 +6,16 @@ public class ExceptionHandlingMiddleware
 {
     private readonly RequestDelegate _next;
     private readonly ILogger<ExceptionHandlingMiddleware> _logger;
+    private readonly LinkGenerator _linkGenerator;
 
     public ExceptionHandlingMiddleware(
         RequestDelegate next,
-        ILogger<ExceptionHandlingMiddleware> logger)
+        ILogger<ExceptionHandlingMiddleware> logger,
+        LinkGenerator linkGenerator)
     {
         _next = next;
         _logger = logger;
+        _linkGenerator = linkGenerator;
     }
 
     public async Task InvokeAsync(HttpContext context)
@@ -23,20 +26,11 @@ public class ExceptionHandlingMiddleware
         }
         catch (Exception exception)
         {
-            _logger.LogError(
-                exception, "Exception occurred: {Message}", exception.Message);
+            _logger.LogError(exception, "Exception occurred: {Message}", exception.Message);
 
-            var problemDetails = new ProblemDetails
-            {
-                Status = StatusCodes.Status500InternalServerError,
-                Title = "Server Error"
-            };
-
-            context.Response.StatusCode =
-                StatusCodes.Status500InternalServerError;
-
-            await context.Response.WriteAsJsonAsync(problemDetails);
+            var errorPath = _linkGenerator.GetPathByAction("Error", "Home", new { area = "" });
+            context.Response.Redirect(errorPath ?? "/Home/Error");
         }
     }
-
 }
+
