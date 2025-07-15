@@ -112,8 +112,8 @@ To manually trigger the `UpdateOrderStatusJob` using the Hangfire dashboard:
    `http://localhost:PORT/hangfire`  
    > Replace `PORT` with the port your app is running on (e.g., `44300`, `5000`, `5001`, etc.).
 3. In the Hangfire dashboard, click on **Recurring Jobs** in the sidebar.
-4. Locate the job named `UpdateOrderStatusJob`.
-5. Click the **▶ Run** button next to it to execute the job manually.
+4. Locate the job named `UpdateOrderStatusJob` and select it.
+5. Click the **▶ Trigger Now** button next to it to execute the job manually.
 
 ### 📄 Modifying Pagination
 
