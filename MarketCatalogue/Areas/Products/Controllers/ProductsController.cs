@@ -78,4 +78,30 @@ public class ProductsController : Controller
             return BadRequest(ex.Message);
         }
     }
+
+    public async Task<IActionResult> DeleteProduct(int productId, int shopId)
+    {
+        try
+        {
+            var wasDeletionSuccessful = await _productsService.DeleteProductById(productId);
+            if(!wasDeletionSuccessful)
+                throw new ProductEditFailedException($"Deleting product with ID {productId} failed unexpectedly.");
+
+            return RedirectToAction(
+                actionName: "ShopPage",
+                controllerName: "PublicShops",
+                routeValues: new { area = "Shops", shopId = shopId }
+            );
+        }
+        catch (ProductNotFoundException ex)
+        {
+            _logger.LogWarning("Product with id {ProductId} was not found. {Message}", productId, ex.Message);
+            return NotFound(ex);
+        }
+        catch (ProductEditFailedException ex)
+        {
+            _logger.LogError("Failed to edit product with id {ProductId}. {Message}", productId, ex.Message);
+            return BadRequest(ex.Message);
+        }
+    }
 }

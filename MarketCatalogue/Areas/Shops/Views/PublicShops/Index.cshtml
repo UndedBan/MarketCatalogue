@@ -45,18 +45,24 @@
 
 <div class="d-flex justify-content-between align-items-center mb-5">
     <h1 class="display-4 fw-bold text-primary mb-0">Your Shops</h1>
-    <a class="btn btn-primary btn-lg rounded-pill shadow d-inline-flex align-items-center gap-2 px-4" asp-action="CreateShop" asp-controller="RepresentativeShops">
-        <i class="bi bi-plus-circle-fill fs-5"></i> Add New Shop
-    </a>
+    @if(User.IsInRole("Market Representative"))
+    {
+        <a class="btn btn-primary btn-lg rounded-pill shadow d-inline-flex align-items-center gap-2 px-4" asp-action="CreateShop" asp-controller="RepresentativeShops">
+            <i class="bi bi-plus-circle-fill fs-5"></i> Add New Shop
+        </a>   
+    }
 </div>
 
 @if (Model.Shops == null || !Model.Shops.Any())
 {
     <div class="alert alert-info text-center py-5 rounded-4 shadow-sm" role="alert" style="background-color:#e0f7f1; border-color:#00b894;">
         <h3 class="alert-heading text-primary fw-bold mb-3">No Shops Found!</h3>
-        <p class="lead mb-4">It looks like you haven't created any shops yet. Start building your presence!</p>
+        <p class="lead mb-4">It looks like there are no shops yet.</p>
         <hr class="my-4">
-        <p class="mb-0">Click the "<span class="fw-bold">Add New Shop</span>" button above to get started and showcase your products.</p>
+        @if(User.IsInRole("Market Representative"))
+        {
+            <p class="mb-0">Click the "<span class="fw-bold">Add New Shop</span>" button above to get started and showcase your products.</p>
+        }
     </div>
 }
 else

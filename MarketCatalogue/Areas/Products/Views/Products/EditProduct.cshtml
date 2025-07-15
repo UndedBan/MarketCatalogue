@@ -12,7 +12,7 @@
                 <div class="card-body">
                     <h2 class="card-title mb-4 text-center text-primary">Edit Product</h2>
 
-                    <form asp-action="EditProduct" method="post" class="needs-validation" novalidate>
+                    <form asp-action="EditProduct" method="post" class="needs-validation mb-4" novalidate>
                         <input type="hidden" asp-for="Id" />
                         <input type="hidden" asp-for="ShopId" />
 
@@ -42,12 +42,24 @@
                             <span asp-validation-for="Category" class="text-danger small"></span>
                         </div>
 
-                        <div class="d-flex justify-content-between align-items-center">
-                            <button type="submit" class="btn btn-lg px-4 text-white" style="background-color: #00b894;">Save Changes</button>
-                            <a asp-action="ShopPage" asp-controller="PublicShops" asp-area="PublicShops" asp-route-shopId="@Model.ShopId" class="btn btn-outline-secondary btn-lg">Cancel</a>
+
+                        <div class="d-flex justify-content-between">
+                            <button type="submit" class="btn btn-lg text-white px-4 w-25" style="background-color: #00b894;"> Save</button>
+                            <a asp-action="ShopPage" asp-controller="PublicShops" asp-area="Shops" asp-route-shopId="@Model.ShopId"
+                               class="btn btn-outline-secondary btn-lg px-4"> Cancel</a>
                         </div>
                     </form>
+
+                    <form asp-action="DeleteProduct" asp-controller="Products" asp-area="Products" method="post"
+                          onsubmit="return confirm('Are you sure you want to delete this product?');">
+                        <input type="hidden" name="productId" value="@Model.Id" />
+                        <input type="hidden" name="shopId" value="@Model.ShopId" />
+                        <button type="submit" class="btn btn-lg text-white px-4 btn-danger">
+                            Delete Product
+                        </button>
+                    </form>
                 </div>
+
             </div>
         </div>
     </div>

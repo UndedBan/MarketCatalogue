@@ -15,4 +15,5 @@ public interface IProductsService
     Task<ProductDetailsDto> GetProductById(int productId);
     Task<bool> EditProductsQuantityBatch(List<EditProductDto> productsEditDto);
     Task<List<Product>> GetAllProductsByMarketRepresentativeId(string marketRepId);
+    Task<bool> DeleteProductById(int productId);
 }

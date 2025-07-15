@@ -26,6 +26,16 @@
             opacity: 0.9;
         }
 
+    .btn-custom-outline {
+        color: #00b894 !important;
+        border-color: #00b894 !important;
+    }
+
+        .btn-custom-outline:hover {
+            background-color: #00b894 !important;
+            color: white !important;
+            border-color: #00b894 !important;
+        }
     .card {
         border-radius: 1rem;
     }
@@ -154,11 +164,15 @@ else
                         </div>
                     </div>
 
-                    <div class="card-footer bg-light border-0 text-center p-3">
+                    <div class="card-footer d-flex justify-content-center gap-3 bg-light border-0 p-3">
                         <a href="@Url.Action("EditShop", "RepresentativeShops", new { shopId = shop.Id })"
-                           class="btn btn-outline-primary btn-lg rounded-pill shadow d-inline-flex align-items-center gap-2 px-4"
-                           style="border-color: #00b894; color: #00b894;">
+                           class="btn btn-lg rounded-pill shadow d-inline-flex align-items-center gap-2 px-4 btn-custom-outline">
                             <i class="bi bi-info-circle-fill fs-5"></i> Edit Shop Details
+                        </a>
+
+                        <a asp-action="ShopPage" asp-controller="PublicShops" asp-area="Shops" asp-route-shopId="@shop.Id"
+                           class="btn btn-lg rounded-pill shadow d-inline-flex align-items-center gap-2 px-4 btn-custom-outline">
+                            <i class="bi bi-box-seam fs-5"></i> View Shop Products
                         </a>
                     </div>
                 </div>

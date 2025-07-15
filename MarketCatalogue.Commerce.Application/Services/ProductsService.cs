@@ -21,11 +21,13 @@ public class ProductsService : IProductsService
     private readonly IMapper _mapper;
     private readonly CommerceDbContext _commerceDbContext;
     private readonly IMemoryCache _cache;
-    public ProductsService(IMapper mapper, CommerceDbContext commerceDbContext, IMemoryCache cache)
+    private readonly ICartService _cartService;
+    public ProductsService(IMapper mapper, CommerceDbContext commerceDbContext, IMemoryCache cache, ICartService cartService)
     {
         _mapper = mapper;
         _commerceDbContext = commerceDbContext;
         _cache = cache;
+        _cartService = cartService;
     }
 
     public async Task<int> CreateProduct(ProductCreateDto productCreateDto)
@@ -102,5 +104,21 @@ public class ProductsService : IProductsService
             .ToListAsync();
 
         return products;
+    }
+
+    public async Task<bool> DeleteProductById(int productId)
+    {
+        var product = await _commerceDbContext.Products
+            .FirstOrDefaultAsync(p => p.Id == productId);
+
+        if (product is null)
+            throw new ProductNotFoundException("Product was not found.");
+
+        _commerceDbContext.Products.Remove(product);
+        var result = await _commerceDbContext.SaveChangesAsync();
+
+        await _cartService.DeleteCartItemsByProductId(productId);
+
+        return result > 0;
     }
 }

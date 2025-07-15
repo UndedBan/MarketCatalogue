@@ -18,4 +18,5 @@ public interface ICartService
     Task<bool> UpdateQuantity(UpdateQuantityDto quantityDto);
     Task<bool> DeleteCartItem(int cartItemId);
     Task<bool> ClearUserCartById(int cartId);
+    Task<bool> DeleteCartItemsByProductId(int productId);
 }

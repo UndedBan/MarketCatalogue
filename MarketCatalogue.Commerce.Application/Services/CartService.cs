@@ -133,6 +133,18 @@ public class CartService : ICartService
         return cart;
     }
 
+    public async Task<bool> DeleteCartItemsByProductId(int productId)
+    {
+        var cartItemsByProduct = await _commerceDbContext.CartItems
+            .Where(c => c.ProductId == productId)
+            .ToListAsync();
+
+        _commerceDbContext.CartItems.RemoveRange(cartItemsByProduct);
+        var result = await _commerceDbContext.SaveChangesAsync();
+
+        return result > 0;
+    }
+
     public async Task<bool> ClearUserCartById(int cartId)
     {
         var cart = await _commerceDbContext.Carts
