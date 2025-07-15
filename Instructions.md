@@ -97,8 +97,8 @@ Example with SQL authentication:
 ```json
 {
   "ConnectionStrings": {
-    "AuthenticationDbContext": "Server=YOUR_SQL_SERVER_INSTANCE;Database=YourApplicationDB_Dev;User ID=YOUR_USERNAME;Password=YOUR_PASSWORD;MultipleActiveResultSets=true",
-    "CommerceDbContext": "Server=YOUR_SQL_SERVER_INSTANCE;Database=YourApplicationDB_Dev;User ID=YOUR_USERNAME;Password=YOUR_PASSWORD;MultipleActiveResultSets=true"
+    "AuthenticationDbContext": "Server=YOUR_SQL_SERVER_INSTANCE;Database=YourApplicationDB_Dev;User ID=YOUR_USERNAME;Password=YOUR_PASSWORD;TrustServerCertificate=true;",
+    "CommerceDbContext": "Server=YOUR_SQL_SERVER_INSTANCE;Database=YourApplicationDB_Dev;User ID=YOUR_USERNAME;Password=YOUR_PASSWORD;TrustServerCertificate=true;"
   }
 }
 ```
