@@ -101,3 +101,16 @@ Example with SQL authentication:
     "CommerceDbContext": "Server=YOUR_SQL_SERVER_INSTANCE;Database=YourApplicationDB_Dev;User ID=YOUR_USERNAME;Password=YOUR_PASSWORD;MultipleActiveResultSets=true"
   }
 }
+```
+
+### 🧩 Running the `UpdateOrderStatusJob` via Hangfire
+
+To manually trigger the `UpdateOrderStatusJob` using the Hangfire dashboard:
+
+1. Start the application.
+2. Open your browser and navigate to:  
+   `http://localhost:PORT/hangfire`  
+   > Replace `PORT` with the port your app is running on (e.g., `44300`, `5000`, `5001`, etc.).
+3. In the Hangfire dashboard, click on **Recurring Jobs** in the sidebar.
+4. Locate the job named `UpdateOrderStatusJob`.
+5. Click the **▶ Run** button next to it to execute the job manually.
