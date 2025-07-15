@@ -75,7 +75,8 @@ A full-stack e-commerce platform built in ASP.NET Core following **Clean Archite
 | Area             | Tech                             |
 |------------------|----------------------------------|
 | Backend          | ASP.NET Core (MVC)               |
-| Database         | Entity Framework Core (SSMS)     |
+| Database         | Microsoft SQL Server             |
+| ORM              | Entity Framework                 |
 | Auth             | ASP.NET Identity (Cookie-based)  |
 | Background Jobs  | Hangfire (In-Memory)             |
 | Mapping          | AutoMapper                       |
