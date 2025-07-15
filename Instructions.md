@@ -45,7 +45,7 @@ Our application utilizes a geocoding service that requires an API key. Please fo
 
     ```json
     {
-      "GeocodingService": {
+      "Geocoding": {
         "BaseUrl": "[https://geocode.maps.co/api/v1/](https://geocode.maps.co/api/v1/)",
         "ApiKey": "YOUR_ACTUAL_API_KEY_HERE" // Replace "YOUR_ACTUAL_API_KEY_HERE"
       },
