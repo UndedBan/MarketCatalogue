@@ -1,3 +1,13 @@
+# 🛠️ Local Development Environment Setup Guide
+
+This guide walks you through setting up your local development environment, including:
+
+- Cloning the repository
+- Setting up **SMTP4DEV** for local email testing
+- Obtaining and configuring a **Geocoding API Key**
+- Restoring a **.bacpac database file**
+- Updating your **connection string**
+
 # Local Development Environment Setup Guide
 
 ## 📧 SMTP4DEV Setup (Version 3.1.4)
