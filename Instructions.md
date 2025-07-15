@@ -2,7 +2,7 @@
 
 This guide walks you through setting up your local development environment, including:
 
-- Cloning the repository (Solution is in "MarketCatalogue")
+- Cloning the repository
 - Setting up **SMTP4DEV** for local email testing
 - Obtaining and configuring a **Geocoding API Key**
 - Restoring a **.bacpac database file**
@@ -114,3 +114,11 @@ To manually trigger the `UpdateOrderStatusJob` using the Hangfire dashboard:
 3. In the Hangfire dashboard, click on **Recurring Jobs** in the sidebar.
 4. Locate the job named `UpdateOrderStatusJob`.
 5. Click the **▶ Run** button next to it to execute the job manually.
+
+### 📄 Modifying Pagination
+
+To adjust how many items are displayed per page in paginated views:
+
+1. Open the `appsettings.json` file in the root of the project.
+2. Locate the `PageSize` setting under the relevant configuration section.
+3. Modify the value to increase or decrease the number of items shown per page.
