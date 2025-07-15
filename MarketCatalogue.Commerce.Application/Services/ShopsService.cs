@@ -155,7 +155,7 @@ public class ShopsService : IShopsService
             TotalItems = totalCount
         };
 
-        _cache.Set(cacheKey, paginatedResultDto, TimeSpan.FromMinutes(10));
+        _cache.Set(cacheKey, paginatedResultDto, TimeSpan.FromMinutes(2));
 
         return paginatedResultDto;
     }
@@ -192,7 +192,7 @@ public class ShopsService : IShopsService
             TotalItems = totalCount
         };
 
-        _cache.Set(cacheKey, paginatedResultDto, TimeSpan.FromMinutes(10));
+        _cache.Set(cacheKey, paginatedResultDto, TimeSpan.FromMinutes(2));
 
         return paginatedResultDto;
     }
