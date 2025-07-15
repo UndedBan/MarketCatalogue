@@ -4,6 +4,9 @@ A full-stack e-commerce platform built in ASP.NET Core following **Clean Archite
 
 ---
 
+## Installation Instructions
+[Instructions.md](./Instructions.md)
+
 ## Features
 
 ### Purchaser Features
