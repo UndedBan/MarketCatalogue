@@ -2,7 +2,7 @@
 
 This guide walks you through setting up your local development environment, including:
 
-- Cloning the repository
+- Cloning the repository (Solution is in "MarketCatalogue")
 - Setting up **SMTP4DEV** for local email testing
 - Obtaining and configuring a **Geocoding API Key**
 - Restoring a **.bacpac database file**
