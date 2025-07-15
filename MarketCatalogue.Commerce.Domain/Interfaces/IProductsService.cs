@@ -1,4 +1,5 @@
 ﻿using MarketCatalogue.Commerce.Domain.Dtos.Product;
+using MarketCatalogue.Commerce.Domain.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,4 +14,5 @@ public interface IProductsService
     Task<bool> EditProduct(EditProductDto productEditDto);
     Task<ProductDetailsDto> GetProductById(int productId);
     Task<bool> EditProductsQuantityBatch(List<EditProductDto> productsEditDto);
+    Task<List<Product>> GetAllProductsByMarketRepresentativeId(string marketRepId);
 }

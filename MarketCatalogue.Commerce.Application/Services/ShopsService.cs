@@ -1,7 +1,6 @@
 ﻿using AutoMapper;
 using MarketCatalogue.Authentication.Domain.Entities;
 using MarketCatalogue.Commerce.Application.Exceptions.Shop;
-using MarketCatalogue.Commerce.Application.Mappings;
 using MarketCatalogue.Commerce.Domain.Dtos.Product;
 using MarketCatalogue.Commerce.Domain.Dtos.Shared;
 using MarketCatalogue.Commerce.Domain.Dtos.Shop;

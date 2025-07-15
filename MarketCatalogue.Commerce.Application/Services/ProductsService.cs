@@ -81,7 +81,6 @@ public class ProductsService : IProductsService
         return result > 0;
     }
 
-
     public async Task<ProductDetailsDto> GetProductById(int productId)
     {
         var product = await _commerceDbContext.Products
@@ -93,5 +92,15 @@ public class ProductsService : IProductsService
             throw new ProductNotFoundException("Product not found.");
 
         return product;
+    }
+
+    public async Task<List<Product>> GetAllProductsByMarketRepresentativeId(string marketRepId)
+    {
+        var products = await _commerceDbContext.Products
+            .Include(p => p.Shop)
+            .Where(p => p.Shop.MarketRepresentativeId == marketRepId)
+            .ToListAsync();
+
+        return products;
     }
 }

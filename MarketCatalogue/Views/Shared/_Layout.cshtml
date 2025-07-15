@@ -26,7 +26,12 @@
                         {
                             <li class="nav-item">
                                 <a class="nav-link text-dark" asp-area="Shops" asp-controller="RepresentativeShops" asp-action="Index">My Shops</a>
-                            </li> 
+                            </li>
+                            <form asp-area="Shops" asp-controller="RepresentativeShops" asp-action="GetProductsReport" method="get" class="d-inline">
+                                <button type="submit" class="btn btn-outline-primary">
+                                    Download Products Report
+                                </button>
+                            </form>
                         }
                         @if(User.IsInRole("Purchaser"))
                         {

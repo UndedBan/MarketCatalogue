@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using ClosedXML.Excel;
 using MarketCatalogue.Authentication.Application.Extensions;
 using MarketCatalogue.Authentication.Domain.Entities;
 using MarketCatalogue.Authentication.Domain.Enumerations;
@@ -27,16 +28,19 @@ public class RepresentativeShopsController : Controller
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly IMapper _mapper;
     private readonly ILogger<RepresentativeShopsController> _logger;
+    private readonly IProductsService _productsService;
 
     public RepresentativeShopsController(IShopsService shopsService,
         UserManager<ApplicationUser> userManager,
         IMapper mapper,
-        ILogger<RepresentativeShopsController> logger)
+        ILogger<RepresentativeShopsController> logger,
+        IProductsService productsService)
     {
         _shopsService = shopsService;
         _userManager = userManager;
         _mapper = mapper;
         _logger = logger;
+        _productsService = productsService;
     }
 
     public async Task<IActionResult> Index([FromQuery] int page = 1)
@@ -193,4 +197,46 @@ public class RepresentativeShopsController : Controller
         }
     }
 
+    [HttpGet]
+    public async Task<IActionResult> GetProductsReport()
+    {
+        var representativeId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        var products = await _productsService.GetAllProductsByMarketRepresentativeId(representativeId);
+
+        using var workbook = new XLWorkbook();
+
+        var groupedByShop = products.GroupBy(p => p.Shop.ShopName);
+
+        foreach (var shopGroup in groupedByShop)
+        {
+            var worksheet = workbook.Worksheets.Add(shopGroup.Key);
+
+            worksheet.Cell(1, 1).Value = "Product Name";
+            worksheet.Cell(1, 2).Value = "Quantity";
+            worksheet.Cell(1, 3).Value = "Price";
+            worksheet.Cell(1, 4).Value = "Category";
+
+            int row = 2;
+            foreach (var product in shopGroup)
+            {
+                worksheet.Cell(row, 1).Value = product.Name;
+                worksheet.Cell(row, 2).Value = product.Quantity;
+                worksheet.Cell(row, 3).Value = product.Price;
+                worksheet.Cell(row, 4).Value = product.Category.ToString();
+                row++;
+            }
+
+            worksheet.Columns().AdjustToContents();
+        }
+
+        using var stream = new MemoryStream();
+        workbook.SaveAs(stream);
+        stream.Position = 0;
+
+        var fileName = $"ProductsReport_{DateTime.UtcNow:yyyyMMdd_HHmm}.xlsx";
+        return File(stream.ToArray(),
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    fileName);
+    }
 }
