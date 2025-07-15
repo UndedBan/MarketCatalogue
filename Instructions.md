@@ -103,6 +103,15 @@ Example with SQL authentication:
 }
 ```
 
+## 🔐 Seeded User Login (Development)
+
+After restoring the database, a default `Market Representative` is available to log in:
+
+- **Email:** `marketrep@example.com`
+- **Password:** `StrongPassword123!`
+
+> You can find or modify the seeded credentials in `Program.cs`.
+
 ### 🧩 Running the `UpdateOrderStatusJob` via Hangfire
 
 To manually trigger the `UpdateOrderStatusJob` using the Hangfire dashboard:

@@ -21,7 +21,7 @@ A full-stack e-commerce platform built in ASP.NET Core following **Clean Archite
 ### Market Representative Features
 - CRUD operations for **Products**
 - CRUD operations for **Shops**
-
+- Download Products Report
 ---
 
 ## Technical Overview
