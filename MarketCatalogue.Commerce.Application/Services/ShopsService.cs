@@ -102,14 +102,6 @@ public class ShopsService : IShopsService
     public async Task<PaginatedResultDto<RepresentativeShopDto>> GetAllShopsByRepresentativeId(
     string representativeId, PaginationDto paginationDto)
     {
-        var cacheKey = $"RepresentativeShops_Page{paginationDto.CurrentPage}_Size{paginationDto.ItemsPerPage}_RepId{representativeId}";
-
-        if (_cache.TryGetValue(cacheKey, out PaginatedResultDto<RepresentativeShopDto>? cachedResult)
-            && cachedResult is not null)
-        {
-            return cachedResult;
-        }
-
         var query = _commerceDbContext.Shops
             .Where(s => s.MarketRepresentativeId == representativeId)
             .Include(s => s.Schedule)
@@ -153,8 +145,6 @@ public class ShopsService : IShopsService
             ItemsPerPage = paginationDto.ItemsPerPage,
             TotalItems = totalCount
         };
-
-        _cache.Set(cacheKey, paginatedResultDto, TimeSpan.FromMinutes(2));
 
         return paginatedResultDto;
     }
